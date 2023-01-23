@@ -2,9 +2,6 @@
   "name": "root",
   "private": true,
   "workspaces": ["packages/*"],
-  "devDependencies": {
-    "lerna": "^3.22.1"
-  },
   "homepage": "https://chonky.io/",
   "author": {
     "name": "Timur Kuzhagaliyev",
