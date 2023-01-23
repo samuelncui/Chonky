@@ -2,10 +2,10 @@ name: Tests
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "aperture" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master" ]
+    branches: [ "master", "aperture" ]
 
 # Builds images for target boards.
 jobs:
@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ['1.19']
         node: [16.x]
     timeout-minutes: 10
     steps:
