@@ -18,7 +18,7 @@ export const FullFileBrowser = React.memo(
     const { onScroll } = props;
     return (
       <FileBrowser ref={ref} {...props}>
-        <FileNavbar />
+        {props.folderChain?.length ? <FileNavbar /> : undefined}
         <FileToolbar />
         <FileList onScroll={onScroll} />
         <FileContextMenu />

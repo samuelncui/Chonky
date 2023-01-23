@@ -71,7 +71,7 @@ export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = (
 const useStyles = makeGlobalChonkyStyles((theme) => ({
   chonkyRoot: {
     backgroundColor: theme.palette.background.paper,
-    border: `${theme.root.borderStyle} ${theme.palette.divider}`,
+    border: theme.root.borderStyle ? `${theme.root.borderStyle} ${theme.palette.divider}` : undefined,
     padding: theme.margins.rootLayoutMargin,
     fontSize: theme.fontSizes.rootPrimary,
     color: theme.palette.text.primary,
