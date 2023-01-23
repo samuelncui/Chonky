@@ -65,7 +65,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ChonkyIconName, ChonkyIconProps } from 'chonky';
+import { ChonkyIconName, ChonkyIconProps } from '@aperturerobotics/chonky';
 import React from 'react';
 
 const IconMap: { [iconName in ChonkyIconName]: any } = {
