@@ -1,4 +1,3 @@
-import { createTheme, ThemeProvider as MuiThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 import merge from 'deepmerge';
 import React, { ReactNode, useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -7,6 +6,7 @@ import { IntlProvider } from 'react-intl';
 import { ThemeProvider } from 'react-jss';
 import { Provider as ReduxProvider } from 'react-redux';
 import shortid from 'shortid';
+import { createTheme, ThemeProvider as MuiThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 
 import { useChonkyStore } from '../../redux/store';
 import { FileBrowserHandle, FileBrowserProps } from '../../types/file-browser.types';
@@ -51,8 +51,12 @@ export const FileBrowser = React.forwardRef<FileBrowserHandle, FileBrowserProps 
     const theme = useMemo(() => {
       const muiTheme = createTheme({
         palette: { mode: darkMode ? 'dark' : 'light' },
+        ...props.muiThemeOptions,
       });
-      const combinedTheme = merge(muiTheme, merge(lightTheme, darkMode ? darkThemeOverride : {}));
+      let combinedTheme = merge(muiTheme, merge(lightTheme, darkMode ? darkThemeOverride : {}));
+      if (props.theme) {
+        combinedTheme = merge(combinedTheme, props.theme);
+      }
       return isMobileBreakpoint ? merge(combinedTheme, mobileThemeOverride) : combinedTheme;
     }, [darkMode, isMobileBreakpoint]);
 

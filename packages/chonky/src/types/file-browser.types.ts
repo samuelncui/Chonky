@@ -1,5 +1,11 @@
 import { ElementType, UIEvent } from 'react';
 import { Nullable } from 'tsdef';
+import {
+  createTheme,
+  ThemeProvider as MuiThemeProvider,
+  ThemeOptions as MuiThemeOptions,
+  StyledEngineProvider,
+} from '@mui/material/styles';
 
 import { ChonkyActions } from '../action-definitions/index';
 import { GenericFileActionHandler } from './action-handler.types';
@@ -8,6 +14,7 @@ import { FileArray } from './file.types';
 import { I18nConfig } from './i18n.types';
 import { ChonkyIconProps } from './icons.types';
 import { ThumbnailGenerator } from './thumbnails.types';
+import { ChonkyTheme } from '../util/styles';
 
 /**
  * File browser methods exposed to developers via the `FileBrowser` ref.
@@ -162,4 +169,10 @@ export interface FileBrowserProps {
    * Define listener for on scroll events on file lists
    */
   onScroll?: (e: UIEvent<HTMLDivElement>) => void;
+
+  // theme overrides chonky theme options.
+  theme?: Partial<ChonkyTheme>;
+
+  // muiThemeOptions are overrides for the material UI theme.
+  muiThemeOptions?: Partial<MuiThemeOptions>;
 }
