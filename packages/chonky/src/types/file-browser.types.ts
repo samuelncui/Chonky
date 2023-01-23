@@ -166,9 +166,13 @@ export interface FileBrowserProps {
    */
   onScroll?: (e: UIEvent<HTMLDivElement>) => void;
 
-  // theme overrides chonky theme options.
+  /**
+   * Overrides ChonkyTheme properties.
+   */
   theme?: DeepPartial<ChonkyTheme>;
 
-  // muiThemeOptions are overrides for the material UI theme.
+  /**
+   * Overrides MuiThemeOptions properties.
+   */
   muiThemeOptions?: DeepPartial<MuiThemeOptions>;
 }

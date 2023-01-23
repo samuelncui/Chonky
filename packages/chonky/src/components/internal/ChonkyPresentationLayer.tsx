@@ -71,7 +71,7 @@ export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = (
 const useStyles = makeGlobalChonkyStyles((theme) => ({
   chonkyRoot: {
     backgroundColor: theme.palette.background.paper,
-    border: `solid 1px ${theme.palette.divider}`,
+    border: `${theme.root.borderStyle} ${theme.palette.divider}`,
     padding: theme.margins.rootLayoutMargin,
     fontSize: theme.fontSizes.rootPrimary,
     color: theme.palette.text.primary,
@@ -80,9 +80,9 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     flexDirection: 'column',
     boxSizing: 'border-box',
     textAlign: 'left',
-    borderRadius: 4,
+    borderRadius: theme.root.borderRadius,
     display: 'flex',
-    height: '100%',
+    height: theme.root.height,
 
     // Disabling select
     webkitTouchCallout: 'none',

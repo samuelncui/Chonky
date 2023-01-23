@@ -23,6 +23,12 @@ export const lightTheme = {
     rootLayoutMargin: 8,
   },
 
+  root: {
+    borderRadius: 4,
+    borderStyle: 'solid 1px',
+    height: '100%',
+  },
+
   toolbar: {
     size: 30,
     lineHeight: '30px', // `px` suffix is required for `line-height` fields to work
