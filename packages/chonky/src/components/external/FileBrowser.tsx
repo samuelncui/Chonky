@@ -6,7 +6,12 @@ import { IntlProvider } from 'react-intl';
 import { ThemeProvider } from 'react-jss';
 import { Provider as ReduxProvider } from 'react-redux';
 import shortid from 'shortid';
-import { createTheme, ThemeProvider as MuiThemeProvider, StyledEngineProvider } from '@mui/material/styles';
+import {
+  createTheme,
+  ThemeProvider as MuiThemeProvider,
+  StyledEngineProvider,
+  ThemeOptions,
+} from '@mui/material/styles';
 
 import { useChonkyStore } from '../../redux/store';
 import { FileBrowserHandle, FileBrowserProps } from '../../types/file-browser.types';
@@ -49,14 +54,15 @@ export const FileBrowser = React.forwardRef<FileBrowserHandle, FileBrowserProps 
 
     const isMobileBreakpoint = useIsMobileBreakpoint();
     const theme = useMemo(() => {
-      const muiTheme = createTheme({
-        palette: { mode: darkMode ? 'dark' : 'light' },
-        ...props.muiThemeOptions,
-      });
-      let combinedTheme = merge(muiTheme, merge(lightTheme, darkMode ? darkThemeOverride : {}));
-      if (props.theme) {
-        combinedTheme = merge(combinedTheme, props.theme);
+      let muiOptions: ThemeOptions = { palette: { mode: darkMode ? 'dark' : 'light' } };
+      if (props.muiThemeOptions) {
+        muiOptions = merge(muiOptions, props.muiThemeOptions);
       }
+      const muiTheme = createTheme(muiOptions);
+      const combinedTheme = merge(
+        muiTheme,
+        merge(merge(lightTheme, darkMode ? darkThemeOverride : {}), props.theme || {}),
+      );
       return isMobileBreakpoint ? merge(combinedTheme, mobileThemeOverride) : combinedTheme;
     }, [darkMode, isMobileBreakpoint]);
 
