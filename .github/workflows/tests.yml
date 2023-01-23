@@ -26,7 +26,7 @@ jobs:
         run: npm i -g yarn npm
       - name: Enable workspaces
         run: yarn config set workspaces-experimental true
-      - name: Yarn install
-        run: yarn install
-      - name: Build Javascript
-        run: yarn workspaces run build
+      - name: Install and build chonky
+        run: cd ./packages/chonky && yarn install
+      - name: Install and build chonky-icon-fontawesome
+        run: cd ./packages/chonky-icon-fontawesome && yarn install

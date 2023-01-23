@@ -17,7 +17,7 @@
     "build": "tsdx build",
     "test": "tsdx test --passWithNoTests",
     "lint": "tsdx lint",
-    "prepare-disabled": "tsdx build",
+    "prepare": "tsdx build",
     "size": "size-limit",
     "analyze": "size-limit --why",
     "format": "prettier --config ../../.prettierrc.js --ignore-path ../../.prettierignore . --write",
