@@ -1,11 +1,7 @@
 import { ElementType, UIEvent } from 'react';
 import { Nullable } from 'tsdef';
-import {
-  createTheme,
-  ThemeProvider as MuiThemeProvider,
-  ThemeOptions as MuiThemeOptions,
-  StyledEngineProvider,
-} from '@mui/material/styles';
+import { ThemeOptions as MuiThemeOptions } from '@mui/material/styles';
+import { DeepPartial } from 'tsdef';
 
 import { ChonkyActions } from '../action-definitions/index';
 import { GenericFileActionHandler } from './action-handler.types';
@@ -171,8 +167,8 @@ export interface FileBrowserProps {
   onScroll?: (e: UIEvent<HTMLDivElement>) => void;
 
   // theme overrides chonky theme options.
-  theme?: Partial<ChonkyTheme>;
+  theme?: DeepPartial<ChonkyTheme>;
 
   // muiThemeOptions are overrides for the material UI theme.
-  muiThemeOptions?: Partial<MuiThemeOptions>;
+  muiThemeOptions?: DeepPartial<MuiThemeOptions>;
 }
