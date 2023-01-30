@@ -82,7 +82,7 @@
     "@types/redux-watch": "^1.1.0",
     "@types/shortid": "^0.0.29",
     "classnames": "^2.2.6",
-    "deepmerge": "^4.2.2",
+    "deepmerge": "^4.3.0",
     "exact-trie": "^1.0.13",
     "fast-sort": "^3.2.1",
     "filesize": "^10.0.6",
