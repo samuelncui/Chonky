@@ -62,9 +62,6 @@ export function MyComponent() {
 > Please [create an issue](https://github.com/aperturerobotics/react-chonky/issues) if you have a
 > problem or want to request a feature.
 
-## Fork
-
-
 ## License
 
 MIT © Aperture Robotics, LLC. 2023
