@@ -1,28 +1,16 @@
 <p align="center">
     <img src="https://chonky.io/chonky-logo-v2.png" alt="Chonky v2 Logo" width="500" />
     <br />
-    <a href="https://www.npmjs.com/package/chonky">
+    <a href="https://www.npmjs.com/package/@aperturerobotics/chonky">
         <img
             alt="NPM package"
-            src="https://img.shields.io/npm/v/chonky.svg?style=flat&colorB=ffac5c"
+            src="https://img.shields.io/npm/v/@aperturerobotics/chonky.svg?style=flat&colorB=ffac5c"
         />
     </a>
     <a href="https://tldrlegal.com/license/mit-license">
         <img
             alt="MIT license"
             src="https://img.shields.io/npm/l/chonky?style=flat&colorB=dcd67a"
-        />
-    </a>
-    <a href="https://www.npmjs.com/package/chonky">
-        <img
-            alt="NPM downloads"
-            src="https://img.shields.io/npm/dt/chonky?style=flat&colorB=aef498"
-        />
-    </a>
-    <a href="https://github.com/TimboKZ/Chonky">
-        <img
-            alt="GitHub stars"
-            src="https://img.shields.io/github/stars/TimboKZ/Chonky?style=flat&colorB=50f4cc"
         />
     </a>
     <a href="https://discord.gg/4HJaFn9">
@@ -41,17 +29,43 @@ browsing experience in your browser. This means your users can make selections, 
 & drop files, toggle between _List_ and _Grid_ file views, use keyboard shortcuts, and
 much more!
 
+This is a fork of [Chonky] by [TimboKZ].
+
+[Chonky]: https://github.com/TimboKZ/Chonky
+[TimboKZ]: https://github.com/TimboKZ
+
+### Usage
+
+Add the forked npm packages:
+
+```
+yarn add @aperturerobotics/chonky @aperturerobotics/chonky-icon-fontawesome
+```
+
+Add to your app:
+
+```typescript
+import { FullFileBrowser } from '@aperturerobotics/chonky'
+import { ChonkyIconFA } from '@aperturerobotics/chonky-icon-fontawesome'
+
+export function MyComponent() {
+    return <FullFileBrowser
+      files={[]}
+      darkMode={true}
+      iconComponent={ChonkyIconFA}
+    />
+}
+```
+
 ### [Click here for documentation and examples.](https://chonky.io/)
 
-> Please [create an issue](https://github.com/TimboKZ/Chonky/issues) if you have a
+> Please [create an issue](https://github.com/aperturerobotics/react-chonky/issues) if you have a
 > problem or want to request a feature.
 
-## Preview
+## Fork
 
-<p align="center">
-  <img src="https://chonky.io/chonky-v2-preview.gif" alt="Chonky preview">
-</p>
 
 ## License
 
+MIT © Aperture Robotics, LLC. 2023
 MIT © [Tim Kuzhagaliyev](https://github.com/TimboKZ) 2020
