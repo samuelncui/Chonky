@@ -65,4 +65,5 @@ export function MyComponent() {
 ## License
 
 MIT © Aperture Robotics, LLC. 2023
+
 MIT © [Tim Kuzhagaliyev](https://github.com/TimboKZ) 2020
