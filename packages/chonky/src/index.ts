@@ -9,9 +9,12 @@ export { FileContextMenu } from './components/external/FileContextMenu';
 export { FullFileBrowser } from './components/external/FullFileBrowser';
 
 export { ChonkyActions, DefaultFileActions, OptionIds } from './action-definitions';
-export { defineFileAction } from './util/helpers';
 
+export { defineFileAction } from './util/helpers';
+export { ChonkyIconContext } from './util/icon-helper';
 export { FileHelper } from './util/file-helper';
+export { makeGlobalChonkyStyles } from './util/styles';
+
 export { FileData, FileArray } from './types/file.types';
 export {
   FileAction,
