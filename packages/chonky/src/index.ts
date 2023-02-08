@@ -13,7 +13,7 @@ export { ChonkyActions, DefaultFileActions, OptionIds } from './action-definitio
 export { defineFileAction } from './util/helpers';
 export { ChonkyIconContext } from './util/icon-helper';
 export { FileHelper } from './util/file-helper';
-export { makeGlobalChonkyStyles } from './util/styles';
+export { makeGlobalChonkyStyles, ChonkyTheme } from './util/styles';
 
 export { FileData, FileArray } from './types/file.types';
 export {
