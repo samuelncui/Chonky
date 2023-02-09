@@ -54,7 +54,9 @@ export const FileBrowser = React.forwardRef<FileBrowserHandle, FileBrowserProps 
 
     const isMobileBreakpoint = useIsMobileBreakpoint();
     const theme = useMemo(() => {
-      let muiOptions: ThemeOptions = { palette: { mode: darkMode ? 'dark' : 'light' } };
+      let muiOptions: ThemeOptions = {
+        palette: { mode: darkMode ? 'dark' : 'light' },
+      };
       if (props.muiThemeOptions) {
         muiOptions = merge(muiOptions, props.muiThemeOptions);
       }
