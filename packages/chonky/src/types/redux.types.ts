@@ -66,6 +66,7 @@ export type RootState = {
   doubleClickDelay: number;
   disableDragAndDrop: boolean;
   clearSelectionOnOutsideClick: boolean;
+  forceEnableOpenParent: boolean;
 
   // State to use inside effects
   lastClick: Nullable<{ index: number; fileId: string }>;

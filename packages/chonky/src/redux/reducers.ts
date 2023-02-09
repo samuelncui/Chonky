@@ -141,6 +141,9 @@ const reducers = {
   setDisableDragAndDrop(state: RootState, action: PayloadAction<boolean>) {
     state.disableDragAndDrop = action.payload;
   },
+  setForceEnableOpenParent(state: RootState, action: PayloadAction<boolean>) {
+    state.forceEnableOpenParent = action.payload;
+  },
   setClearSelectionOnOutsideClick(state: RootState, action: PayloadAction<boolean>) {
     state.clearSelectionOnOutsideClick = action.payload;
   },

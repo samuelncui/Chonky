@@ -97,6 +97,12 @@ export interface FileBrowserProps {
   doubleClickDelay?: number;
 
   /**
+   * Forces displaying the open_parent_folder button.
+   * If this is false, open_parent_folder is available if folderChain.length !== 0.
+   */
+  forceEnableOpenParent?: boolean;
+
+  /**
    * The flag that completely disables file selection functionality. If any handlers
    * depend on file selections, their input will always have empty file selections.
    */
