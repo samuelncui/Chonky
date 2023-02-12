@@ -38,7 +38,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
   const reduxSearchString = useSelector(selectSearchString);
 
   const [localSearchString, setLocalSearchString] = useState(reduxSearchString);
-  const [debouncedLocalSearchString] = useDebounce(localSearchString, 300);
+  const [debouncedLocalSearchString] = useDebounce(localSearchString, 50);
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
 
   useEffect(() => {
