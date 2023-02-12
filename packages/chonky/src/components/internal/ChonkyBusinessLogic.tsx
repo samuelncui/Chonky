@@ -56,6 +56,10 @@ export const ChonkyBusinessLogicInner = React.memo(
       getValueOrFallback(props.forceEnableOpenParent, defaultConfig.forceEnableOpenParent, 'boolean'),
     );
     useDTE(
+      reduxActions.setHideToolbarInfo,
+      getValueOrFallback(props.hideToolbarInfo, defaultConfig.hideToolbarInfo, 'boolean'),
+    );
+    useDTE(
       reduxActions.setDisableDragAndDrop,
       getValueOrFallback(props.disableDragAndDrop, defaultConfig.disableDragAndDrop, 'boolean'),
     );

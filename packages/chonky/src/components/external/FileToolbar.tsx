@@ -1,7 +1,7 @@
 import React, { ReactElement, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import { selectToolbarItems } from '../../redux/selectors';
+import { selectToolbarItems, selectHideToolbarInfo } from '../../redux/selectors';
 import { makeGlobalChonkyStyles } from '../../util/styles';
 import { SmartToolbarButton } from './ToolbarButton';
 import { ToolbarDropdown } from './ToolbarDropdown';
@@ -31,12 +31,13 @@ export const FileToolbar: React.FC<FileToolbarProps> = React.memo(() => {
     return components;
   }, [toolbarItems]);
 
+  const hideToolbarInfo = useSelector(selectHideToolbarInfo);
   return (
     <div className={classes.toolbarWrapper}>
       <div className={classes.toolbarContainer}>
         <div className={classes.toolbarLeft}>
           <ToolbarSearch />
-          <ToolbarInfo />
+          {!hideToolbarInfo && <ToolbarInfo />}
         </div>
         <div className={classes.toolbarRight}>{toolbarItemComponents}</div>
       </div>

@@ -144,6 +144,9 @@ const reducers = {
   setForceEnableOpenParent(state: RootState, action: PayloadAction<boolean>) {
     state.forceEnableOpenParent = action.payload;
   },
+  setHideToolbarInfo(state: RootState, action: PayloadAction<boolean>) {
+    state.hideToolbarInfo = action.payload;
+  },
   setClearSelectionOnOutsideClick(state: RootState, action: PayloadAction<boolean>) {
     state.clearSelectionOnOutsideClick = action.payload;
   },

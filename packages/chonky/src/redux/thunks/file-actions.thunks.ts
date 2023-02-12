@@ -71,7 +71,7 @@ export const thunkUpdateToolbarNContextMenuItems =
     const groupSortOrder: Record<string, number> = {
       Options: 0,
       Actions: 1,
-    }
+    };
 
     type SeenGroupMap = { [groupName: string]: FileActionGroup };
 
@@ -118,7 +118,7 @@ export const thunkUpdateToolbarNContextMenuItems =
       }
     }
 
-    toolbarGroupItems.sort((a, b) => a.sortOrder - b.sortOrder)
+    toolbarGroupItems.sort((a, b) => a.sortOrder - b.sortOrder);
     dispatch(reduxActions.updateFileActionMenuItems([[...toolbarItems, ...toolbarGroupItems], contextMenuItems]));
   };
 

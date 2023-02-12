@@ -44,7 +44,6 @@ export const ToolbarDropdown: React.FC<ToolbarDropdownProps> = React.memo((props
     toolbarButtonProps.iconOnly = true;
     toolbarButtonProps.text = '';
   }
-  console.log('rendering ToolbarDropdown', props, icon, toolbarButtonProps);
 
   const classes = useStyles();
   return (

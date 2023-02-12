@@ -67,6 +67,7 @@ export type RootState = {
   disableDragAndDrop: boolean;
   clearSelectionOnOutsideClick: boolean;
   forceEnableOpenParent: boolean;
+  hideToolbarInfo: boolean;
 
   // State to use inside effects
   lastClick: Nullable<{ index: number; fileId: string }>;

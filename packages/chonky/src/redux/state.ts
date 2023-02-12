@@ -46,6 +46,7 @@ export const initialRootState: RootState = {
   disableDragAndDrop: false,
   clearSelectionOnOutsideClick: true,
   forceEnableOpenParent: false,
+  hideToolbarInfo: false,
 
   lastClick: null,
 

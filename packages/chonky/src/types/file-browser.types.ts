@@ -103,6 +103,11 @@ export interface FileBrowserProps {
   forceEnableOpenParent?: boolean;
 
   /**
+   * Hides the toolbar info component.
+   */
+  hideToolbarInfo?: boolean;
+
+  /**
    * The flag that completely disables file selection functionality. If any handlers
    * depend on file selections, their input will always have empty file selections.
    */
