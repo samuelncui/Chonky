@@ -108,7 +108,7 @@ export const thunkRequestFileAction =
           getReduxState: getState,
         }) as MaybePromise<boolean | undefined>;
       } catch (err) {
-        const error = err as Error
+        const error = err as Error;
         Logger.error(`User-defined effect function for action ${action.id} threw an ` + `error: ${error.message}`);
       }
     }

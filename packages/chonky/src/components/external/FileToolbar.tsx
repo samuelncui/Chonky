@@ -24,7 +24,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = React.memo(() => {
         typeof item === 'string' ? (
           <SmartToolbarButton key={key} fileActionId={item} />
         ) : (
-          <ToolbarDropdown key={key} name={item.name} fileActionIds={item.fileActionIds} />
+          <ToolbarDropdown key={key} {...item} />
         );
       components.push(component);
     }

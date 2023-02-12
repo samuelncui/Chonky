@@ -68,10 +68,15 @@ export const thunkUpdateToolbarNContextMenuItems =
       Actions: ChonkyIconName.dropdown,
       Options: ChonkyIconName.config,
     };
+    const groupSortOrder: Record<string, number> = {
+      Options: 0,
+      Actions: 1,
+    }
 
     type SeenGroupMap = { [groupName: string]: FileActionGroup };
 
     const toolbarItems: FileActionMenuItem[] = [];
+    const toolbarGroupItems: FileActionGroup[] = [];
     const seenToolbarGroups: SeenGroupMap = {};
 
     const contextMenuItems: FileActionMenuItem[] = [];
@@ -82,6 +87,7 @@ export const thunkUpdateToolbarNContextMenuItems =
       const group: FileActionGroup = {
         name: groupName,
         icon: groupIcons[groupName] || null,
+        sortOrder: groupSortOrder[groupName] || -1,
         fileActionIds: [],
       };
       itemArray.push(group);
@@ -95,7 +101,7 @@ export const thunkUpdateToolbarNContextMenuItems =
 
       if (button.toolbar && !excludedToolbarFileActionIds.has(action.id)) {
         if (button.group) {
-          const group = getGroup(toolbarItems, seenToolbarGroups, button.group);
+          const group = getGroup(toolbarGroupItems, seenToolbarGroups, button.group);
           group.fileActionIds.push(action.id);
         } else {
           toolbarItems.push(action.id);
@@ -112,7 +118,8 @@ export const thunkUpdateToolbarNContextMenuItems =
       }
     }
 
-    dispatch(reduxActions.updateFileActionMenuItems([toolbarItems, contextMenuItems]));
+    toolbarGroupItems.sort((a, b) => a.sortOrder - b.sortOrder)
+    dispatch(reduxActions.updateFileActionMenuItems([[...toolbarItems, ...toolbarGroupItems], contextMenuItems]));
   };
 
 export const thunkUpdateDefaultFileViewActionId =
