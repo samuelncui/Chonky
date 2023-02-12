@@ -3,6 +3,7 @@ import { Nilable } from 'tsdef';
 import { ChonkyActions, DefaultFileActions, EssentialFileActions } from '../../action-definitions/index';
 import { FileActionGroup, FileActionMenuItem } from '../../types/action-menus.types';
 import { FileAction } from '../../types/action.types';
+import { ChonkyIconName } from '../../types/icons.types';
 import { ChonkyThunk } from '../../types/redux.types';
 import { SortOrder } from '../../types/sort.types';
 import { sanitizeInputArray } from '../files-transforms';
@@ -61,6 +62,13 @@ export const thunkUpdateToolbarNContextMenuItems =
       ChonkyActions.OpenParentFolder.id,
     ]);
 
+    // TODO: Move decision to set icons somewhere else, as users' custom
+    //  components might not give these group names special treatment.
+    const groupIcons: Record<string, ChonkyIconName> = {
+      Actions: ChonkyIconName.dropdown,
+      Options: ChonkyIconName.config,
+    };
+
     type SeenGroupMap = { [groupName: string]: FileActionGroup };
 
     const toolbarItems: FileActionMenuItem[] = [];
@@ -71,7 +79,11 @@ export const thunkUpdateToolbarNContextMenuItems =
 
     const getGroup = (itemArray: FileActionMenuItem[], seenMap: SeenGroupMap, groupName: string): FileActionGroup => {
       if (seenMap[groupName]) return seenMap[groupName];
-      const group: FileActionGroup = { name: groupName, fileActionIds: [] };
+      const group: FileActionGroup = {
+        name: groupName,
+        icon: groupIcons[groupName] || null,
+        fileActionIds: [],
+      };
       itemArray.push(group);
       seenMap[groupName] = group;
       return group;

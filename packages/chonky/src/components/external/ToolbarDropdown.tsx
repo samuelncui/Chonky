@@ -10,13 +10,13 @@ import React, { useCallback, useMemo } from 'react';
 import { FileActionGroup } from '../../types/action-menus.types';
 import { useLocalizedFileActionGroup } from '../../util/i18n';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
-import { ToolbarButton } from './ToolbarButton';
+import { ToolbarButton, ToolbarButtonProps } from './ToolbarButton';
 import { SmartToolbarDropdownButton } from './ToolbarDropdownButton';
 
 export type ToolbarDropdownProps = FileActionGroup;
 
 export const ToolbarDropdown: React.FC<ToolbarDropdownProps> = React.memo((props) => {
-  const { name, fileActionIds } = props;
+  const { name, icon, fileActionIds } = props;
   const [anchor, setAnchor] = React.useState<null | HTMLElement>(null);
 
   const handleClick = useCallback(
@@ -34,10 +34,21 @@ export const ToolbarDropdown: React.FC<ToolbarDropdownProps> = React.memo((props
   );
 
   const localizedName = useLocalizedFileActionGroup(name);
+  const toolbarButtonProps: ToolbarButtonProps = {
+    text: localizedName,
+    onClick: handleClick,
+    dropdown: true,
+  };
+  if (icon) {
+    toolbarButtonProps.icon = icon;
+    toolbarButtonProps.iconOnly = true;
+    toolbarButtonProps.text = '';
+  }
+
   const classes = useStyles();
   return (
     <>
-      <ToolbarButton text={localizedName} onClick={handleClick} dropdown={true} />
+      <ToolbarButton {...toolbarButtonProps} />
       <Menu
         autoFocus
         keepMounted

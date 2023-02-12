@@ -30,7 +30,7 @@ export const useFileActionProps = (
   fileActionId: string,
 ): { icon: Nullable<ChonkyIconName | string>; active: boolean; disabled: boolean } => {
   const parentFolder = useSelector(selectParentFolder);
-  const forceEnableOpenParent = useSelector(selectForceEnableOpenParent)
+  const forceEnableOpenParent = useSelector(selectForceEnableOpenParent);
   const fileViewConfig = useSelector(selectFileViewConfig);
 
   const sortActionId = useSelector(selectSortActionId);
