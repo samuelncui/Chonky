@@ -1,6 +1,6 @@
 {
   "name": "@aperturerobotics/chonky",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A File Browser component for React",
   "license": "MIT",
   "main": "dist/index.js",
@@ -39,14 +39,14 @@
     "useTabs": false,
     "printWidth": 88
   },
-  "module": "dist/chonky.esm.js",
+  "module": "dist/index.esm.js",
   "size-limit": [
     {
       "path": "dist/chonky.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/chonky.esm.js",
+      "path": "dist/index.esm.js",
       "limit": "10 KB"
     }
   ],

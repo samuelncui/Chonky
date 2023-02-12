@@ -1,7 +1,6 @@
-import 'react-app-polyfill/ie11';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { FullFileBrowser } from '../.';
+import { FullFileBrowser } from '../dist/index.esm';
 
 const App = () => {
   return (
