@@ -34,7 +34,7 @@ export const defaultConfig: ChonkyConfig = {
   disableDragAndDrop: false,
   disableDragAndDropProvider: false,
   defaultSortActionId: ChonkyActions.SortFilesByName.id,
-  defaultFileViewActionId: ChonkyActions.EnableGridView.id,
+  defaultFileViewActionId: ChonkyActions.EnableListView.id,
   clearSelectionOnOutsideClick: true,
   iconComponent: ChonkyIconPlaceholder,
   darkMode: false,
