@@ -13,10 +13,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "start": "dts watch",
+    "build": "dts build",
+    "lint": "dts lint",
+    "prepare": "dts build",
     "size": "size-limit",
     "analyze": "size-limit --why",
     "format": "prettier --config ../../.prettierrc.js --ignore-path ../../.prettierignore . --write",
@@ -27,7 +27,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "tsdx lint"
+      "pre-commit": "dts lint"
     }
   },
   "prettier": {
@@ -53,16 +53,16 @@
     "@size-limit/preset-small-lib": "^8.1.2",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "dts-cli": "^1.6.3",
     "husky": "^8.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "size-limit": "^8.1.2",
-    "tsdx": "^0.14.1",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@aperturerobotics/chonky": "^0.2.0",
+    "@aperturerobotics/chonky": "^0.2.2",
     "@fortawesome/fontawesome-svg-core": "^6.3.0",
     "@fortawesome/free-brands-svg-icons": "6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",

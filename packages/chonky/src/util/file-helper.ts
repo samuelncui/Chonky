@@ -69,8 +69,9 @@ export class FileHelper {
       try {
         return new Date(maybeDate);
       } catch (error) {
+        const err = error as Error
         Logger.error(
-          `Could not convert provided string/number into a date: ${error.message} `,
+          `Could not convert provided string/number into a date: ${err.message} `,
           'Invalid value:',
           maybeDate,
         );
