@@ -89,10 +89,11 @@ export const DefaultActions = {
       entryHeight: 30,
     },
     button: {
-      name: 'Switch to List view',
+      name: 'Switch to List',
       toolbar: true,
       icon: ChonkyIconName.list,
-      iconOnly: true,
+      // iconOnly: true,
+      group: 'Options',
     },
   } as const),
   /**
@@ -108,10 +109,11 @@ export const DefaultActions = {
       entryWidth: 220,
     },
     button: {
-      name: 'Switch to Compact view',
+      name: 'Switch to Compact',
       toolbar: true,
       icon: ChonkyIconName.compact,
-      iconOnly: true,
+      // iconOnly: true,
+      group: 'Options',
     },
   } as const),
   /**
@@ -121,10 +123,11 @@ export const DefaultActions = {
     id: 'enable_grid_view',
     fileViewConfig: { mode: FileViewMode.Grid, entryWidth: 100, entryHeight: 100 },
     button: {
-      name: 'Switch to Grid view',
+      name: 'Switch to Grid',
       toolbar: true,
       icon: ChonkyIconName.smallThumbnail,
-      iconOnly: true,
+      // iconOnly: true,
+      group: 'Options',
     },
   } as const),
   /**

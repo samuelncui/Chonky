@@ -70,6 +70,8 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     height: theme.toolbar.size,
     paddingBottom: important(0),
     paddingTop: important(0),
+    paddingLeft: theme.toolbar.buttonPadding,
+    paddingRight: theme.toolbar.buttonPadding,
   },
   iconWithText: {
     marginRight: 8,

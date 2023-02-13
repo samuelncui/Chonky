@@ -1,6 +1,6 @@
 {
   "name": "@aperturerobotics/chonky",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A File Browser component for React",
   "license": "MIT",
   "main": "dist/index.js",
