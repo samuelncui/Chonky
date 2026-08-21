@@ -19,7 +19,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm test && pnpm build && pnpm typecheck"
   },
-  "homepage": "https://chonky.io/",
+  "homepage": "https://github.com/samuelncui/Chonky#readme",
   "author": {
     "name": "Timur Kuzhagaliyev",
     "email": "tim.kuzh@gmail.com",
