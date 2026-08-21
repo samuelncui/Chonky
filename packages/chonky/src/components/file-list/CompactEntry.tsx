@@ -30,10 +30,10 @@ export const CompactEntry: React.FC<FileEntryProps> = React.memo(
           </div>
           <div className={classes.listFileEntryProperties}>
             <div className={classes.listFileEntryProperty}>
-              {file ? fileModDateString ?? <span>—</span> : <TextPlaceholder minLength={5} maxLength={15} />}
+              {file ? (fileModDateString ?? <span>—</span>) : <TextPlaceholder minLength={5} maxLength={15} />}
             </div>
             <div className={classes.listFileEntryProperty}>
-              {file ? fileSizeString ?? <span>—</span> : <TextPlaceholder minLength={10} maxLength={20} />}
+              {file ? (fileSizeString ?? <span>—</span>) : <TextPlaceholder minLength={10} maxLength={20} />}
             </div>
           </div>
         </div>

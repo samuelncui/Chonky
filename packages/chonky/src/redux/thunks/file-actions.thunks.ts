@@ -29,7 +29,7 @@ const mergeFileActionsArrays = (...fileActionArrays: FileAction[][]): FileAction
 export const thunkUpdateRawFileActions =
   (rawFileActions: FileAction[] | any, disableDefaultFileActions: Nilable<boolean | string[]>): ChonkyThunk =>
   (dispatch) => {
-    const { sanitizedArray, errorMessages } = sanitizeInputArray('fileActions', rawFileActions);
+    const { sanitizedArray } = sanitizeInputArray('fileActions', rawFileActions);
 
     // Add default actions unless user disabled them
     let defaultActionsToAdd: FileAction[];
@@ -46,8 +46,6 @@ export const thunkUpdateRawFileActions =
     const optionDefaults: any = {};
     fileActions.map((a) => (a.option ? (optionDefaults[a.option.id] = a.option.defaultValue) : null));
 
-    dispatch(reduxActions.setRawFileActions(rawFileActions));
-    dispatch(reduxActions.setFileActionsErrorMessages(errorMessages));
     dispatch(reduxActions.setFileActions(fileActions));
     dispatch(reduxActions.setOptionDefaults(optionDefaults));
     dispatch(thunkUpdateToolbarNContextMenuItems(fileActions));

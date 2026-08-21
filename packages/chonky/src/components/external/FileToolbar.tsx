@@ -1,5 +1,5 @@
 import React, { ReactElement, ReactNode, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useChonkySelector } from '../../redux/store';
 
 import { selectToolbarItems, selectHideToolbarInfo } from '../../redux/selectors';
 import { makeGlobalChonkyStyles } from '../../util/styles';
@@ -10,46 +10,50 @@ import { ToolbarSearch } from './ToolbarSearch';
 
 export interface FileToolbarProps {}
 
-export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> =
-  React.memo((props) => {
-    const { children } = props;
-    const classes = useStyles();
-    const toolbarItems = useSelector(selectToolbarItems);
+export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> = React.memo((props) => {
+  const { children } = props;
+  const classes = useStyles();
+  const toolbarItems = useChonkySelector(selectToolbarItems);
 
-    const toolbarItemComponents = useMemo(() => {
-      const components: ReactElement[] = [];
-      for (let i = 0; i < toolbarItems.length; ++i) {
-        const item = toolbarItems[i];
+  const toolbarItemComponents = useMemo(() => {
+    const components: ReactElement[] = [];
+    for (let i = 0; i < toolbarItems.length; ++i) {
+      const item = toolbarItems[i];
 
-        const key = `toolbar-item-${typeof item === 'string' ? item : item.name}`;
-        const component =
-          typeof item === 'string' ? (
-            <SmartToolbarButton key={key} fileActionId={item} />
-          ) : (
-            <ToolbarDropdown key={key} {...item} />
-          );
-        components.push(component);
-      }
-      return components;
-    }, [toolbarItems]);
+      const key = `toolbar-item-${typeof item === 'string' ? item : item.name}`;
+      const component =
+        typeof item === 'string' ? (
+          <SmartToolbarButton key={key} fileActionId={item} />
+        ) : (
+          <ToolbarDropdown key={key} {...item} />
+        );
+      components.push(component);
+    }
+    return components;
+  }, [toolbarItems]);
 
-    const hideToolbarInfo = useSelector(selectHideToolbarInfo);
-    return (
-      <div className={classes.toolbarWrapper}>
-        <div className={classes.toolbarContainer}>
-          <div className={classes.toolbarLeft}>
-            <ToolbarSearch />
-            {!hideToolbarInfo && <ToolbarInfo />}
-            {children}
-          </div>
-          <div className={classes.toolbarRight}>{toolbarItemComponents}</div>
+  const hideToolbarInfo = useChonkySelector(selectHideToolbarInfo);
+  return (
+    <div className={classes.toolbarWrapper}>
+      <div className={classes.toolbarContainer}>
+        <div className={classes.toolbarLeft}>
+          <ToolbarSearch />
+          {!hideToolbarInfo && <ToolbarInfo />}
+          {children}
         </div>
+        <div className={classes.toolbarRight}>{toolbarItemComponents}</div>
       </div>
-    );
-  });
+    </div>
+  );
+});
 
 const useStyles = makeGlobalChonkyStyles((theme) => ({
-  toolbarWrapper: {},
+  toolbarWrapper: {
+    marginLeft: -theme.margins.rootLayoutMargin,
+    marginRight: -theme.margins.rootLayoutMargin,
+    paddingLeft: theme.margins.rootLayoutMargin,
+    paddingRight: theme.margins.rootLayoutMargin,
+  },
   toolbarContainer: {
     flexWrap: 'wrap-reverse',
     display: 'flex',

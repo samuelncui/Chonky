@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useChonkySelector } from '../../redux/store';
 import { Nullable } from 'tsdef';
 
 import { selectFileData, selectIsDnDDisabled, selectIsFileSelected } from '../../redux/selectors';
@@ -33,7 +33,7 @@ export const SmartFileEntry: React.FC<SmartFileEntryProps> = React.memo(({ fileI
   // Basic properties
   const file = useParamSelector(selectFileData, fileId);
   const selected = useParamSelector(selectIsFileSelected, fileId);
-  const dndDisabled = useSelector(selectIsDnDDisabled);
+  const dndDisabled = useChonkySelector(selectIsDnDDisabled);
 
   // Clickable wrapper properties
   const fileClickHandlers = useFileClickHandlers(file, displayIndex);

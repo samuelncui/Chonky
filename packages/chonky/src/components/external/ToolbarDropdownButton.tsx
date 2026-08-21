@@ -38,13 +38,13 @@ export const ToolbarDropdownButton = React.forwardRef(
       [classes.activeButton]: active,
     });
     return (
-      <MenuItem ref={ref} className={className} onClick={onClick} disabled={disabled}>
+      <MenuItem ref={ref} aria-label={text} className={className} onClick={onClick} disabled={disabled}>
         {icon && (
           <ListItemIcon className={classes.icon}>
             <ChonkyIcon icon={icon} fixedWidth={true} />
           </ListItemIcon>
         )}
-        <ListItemText primaryTypographyProps={{ className: classes.text }}>{text}</ListItemText>
+        <ListItemText slotProps={{ primary: { className: classes.text } }}>{text}</ListItemText>
       </MenuItem>
     );
   },

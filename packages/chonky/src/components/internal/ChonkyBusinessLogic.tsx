@@ -22,7 +22,7 @@ import { getValueOrFallback } from '../../util/helpers';
 export const ChonkyBusinessLogicInner = React.memo(
   React.forwardRef<FileBrowserHandle, FileBrowserProps>((props, ref) => {
     // ==== Update Redux state
-    usePropReduxUpdate(reduxActions.setRawFiles, props.files ?? initialRootState.rawFiles);
+    usePropReduxUpdate(reduxActions.setRawFiles, props.files ?? initialRootState.files);
     usePropReduxUpdate(reduxActions.setRawFolderChain, props.folderChain);
     useDTE(
       thunkUpdateRawFileActions,

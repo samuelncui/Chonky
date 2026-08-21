@@ -1,5 +1,5 @@
 import React, { HTMLProps, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { Nullable, Undefinable } from 'tsdef';
 
 import { ChonkyActions } from '../../action-definitions/index';
@@ -74,9 +74,6 @@ export const useModifierIconComponents = (file: Nullable<FileData>) => {
   const ChonkyIcon = useContext(ChonkyIconContext);
   const modifierIconComponents = useMemo(
     () => modifierIcons.map((icon, index) => <ChonkyIcon key={`file-modifier-${index}`} icon={icon} />),
-    // For some reason ESLint marks `ChonkyIcon` as an unnecessary dependency,
-    // but we expect it can change at runtime so we disable the check.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [ChonkyIcon, modifierIcons],
   );
   return modifierIconComponents;
@@ -115,7 +112,7 @@ export const useFileNameComponent = (file: Nullable<FileData>) => {
 };
 
 export const useThumbnailUrl = (file: Nullable<FileData>) => {
-  const thumbnailGenerator = useSelector(selectThumbnailGenerator);
+  const thumbnailGenerator = useChonkySelector(selectThumbnailGenerator);
   const [thumbnailUrl, setThumbnailUrl] = useState<Nullable<string>>(null);
   const [thumbnailLoading, setThumbnailLoading] = useState<boolean>(false);
   const loadingAttempts = useRef(0);
@@ -157,7 +154,7 @@ export const useThumbnailUrl = (file: Nullable<FileData>) => {
 };
 
 export const useFileClickHandlers = (file: Nullable<FileData>, displayIndex: number) => {
-  const dispatch: ChonkyDispatch = useDispatch();
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
 
   // Prepare base handlers
   const onMouseClick = useCallback(

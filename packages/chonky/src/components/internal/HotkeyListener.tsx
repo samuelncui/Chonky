@@ -6,7 +6,7 @@
 
 import hotkeys from 'hotkeys-js';
 import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useChonkyDispatch } from '../../redux/store';
 
 import { selectFileActionData } from '../../redux/selectors';
 import { useParamSelector } from '../../redux/store';
@@ -20,7 +20,7 @@ export interface HotkeyListenerProps {
 export const HotkeyListener: React.FC<HotkeyListenerProps> = React.memo((props) => {
   const { fileActionId } = props;
 
-  const dispatch: ChonkyDispatch = useDispatch();
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
   const fileAction = useParamSelector(selectFileActionData, fileActionId);
 
   useEffect(() => {

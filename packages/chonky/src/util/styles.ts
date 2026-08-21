@@ -1,7 +1,8 @@
 import { Theme as MuiTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import classnames from 'classnames';
-import { createUseStyles } from 'react-jss';
+import { css } from '@emotion/css';
 import { DeepPartial } from 'tsdef';
 
 export const lightTheme = {
@@ -125,43 +126,59 @@ export const getStripeGradient = (colorOne: string, colorTwo: string) =>
   `${colorTwo} 20px` +
   ')';
 
-export const makeLocalChonkyStyles = <C extends string = string>(
-  styles: (theme: ChonkyTheme & MuiTheme) => any,
-  // @ts-ignore
-): any => createUseStyles<ChonkyTheme, C>(styles);
+type StyleMap<C extends string> = Record<C, Record<string, unknown>>;
+type ClassMap<C extends string> = Record<C, string>;
 
-export const makeGlobalChonkyStyles = <C extends string = string>(
-  makeStyles: (theme: ChonkyTheme & MuiTheme) => any,
+const importantMarker = Symbol('chonky-important');
+type ImportantValue = {
+  [importantMarker]: true;
+  value: unknown;
+};
+
+const isImportantValue = (value: unknown): value is ImportantValue =>
+  !!value && typeof value === 'object' && importantMarker in value;
+
+const formatCSSValue = (value: unknown): string => {
+  if (Array.isArray(value)) return value.map(formatCSSValue).join(' ');
+  if (typeof value === 'number') return value === 0 ? '0' : `${value}px`;
+  return String(value);
+};
+
+const resolveStyles = (value: unknown, state: unknown): unknown => {
+  if (typeof value === 'function') return resolveStyles(value(state), state);
+  if (isImportantValue(value)) return `${formatCSSValue(value.value)} !important`;
+  if (Array.isArray(value)) return formatCSSValue(value);
+  if (!value || typeof value !== 'object') return value;
+
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, resolveStyles(child, state)]));
+};
+
+const makeChonkyStyles = <C extends string>(
+  makeStyles: (theme: ChonkyTheme & MuiTheme) => StyleMap<C>,
+  globalClassNames: boolean,
 ) => {
-  const selectorMapping = {};
-  const makeGlobalStyles = (theme: ChonkyTheme) => {
-    const localStyles = makeStyles(theme as any);
-    const globalStyles = {};
-    const localSelectors = Object.keys(localStyles);
-    localSelectors.map((localSelector) => {
-      const globalSelector = `chonky-${localSelector}`;
-      const jssSelector = `@global .${globalSelector}`;
-      // @ts-ignore
-      globalStyles[jssSelector] = localStyles[localSelector];
-      // @ts-ignore
-      selectorMapping[localSelector] = globalSelector;
-    });
-    return globalStyles;
-  };
-
-  // @ts-ignore
-  const useStyles = createUseStyles<ChonkyTheme, C>(makeGlobalStyles as any);
-  return (...args: any[]): any => {
-    const styles = useStyles(...args);
-    const classes = {};
-    Object.keys(selectorMapping).map((localSelector) => {
-      // @ts-ignore
-      classes[localSelector] = selectorMapping[localSelector];
-    });
-    return { ...classes, ...styles };
+  return (state?: unknown): ClassMap<C> => {
+    const theme = useTheme<ChonkyTheme & MuiTheme>();
+    const classes = {} as ClassMap<C>;
+    for (const [name, styles] of Object.entries(makeStyles(theme)) as [C, Record<string, unknown>][]) {
+      const generatedClassName = css(resolveStyles(styles, state) as any);
+      classes[name] = globalClassNames ? `chonky-${name} ${generatedClassName}` : generatedClassName;
+    }
+    return classes;
   };
 };
 
-export const important = <T>(value: T) => [value, '!important'];
+export const makeLocalChonkyStyles = <C extends string = string>(
+  makeStyles: (theme: ChonkyTheme & MuiTheme) => StyleMap<C>,
+) => makeChonkyStyles(makeStyles, false);
 
-export const c = classnames;
+export const makeGlobalChonkyStyles = <C extends string = string>(
+  makeStyles: (theme: ChonkyTheme & MuiTheme) => StyleMap<C>,
+) => makeChonkyStyles(makeStyles, true);
+
+export const important = <T>(value: T): ImportantValue => ({
+  [importantMarker]: true,
+  value,
+});
+
+export const c: typeof classnames = classnames;

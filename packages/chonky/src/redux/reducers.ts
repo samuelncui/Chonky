@@ -7,7 +7,7 @@ import { FileActionMenuItem } from '../types/action-menus.types';
 import { FileAction, FileActionMap } from '../types/action.types';
 import { ContextMenuConfig } from '../types/context-menu.types';
 import { FileViewConfig } from '../types/file-view.types';
-import { FileArray, FileIdTrueMap, FileMap } from '../types/file.types';
+import { FileArray, FileMap } from '../types/file.types';
 import { OptionMap } from '../types/options.types';
 import { RootState } from '../types/redux.types';
 import { SortOrder } from '../types/sort.types';
@@ -20,36 +20,23 @@ const reducers = {
   setExternalFileActionHandler(state: RootState, action: PayloadAction<Nilable<GenericFileActionHandler<FileAction>>>) {
     state.externalFileActionHandler = action.payload ?? null;
   },
-  setRawFileActions(state: RootState, action: PayloadAction<FileAction[] | any>) {
-    state.rawFileActions = action.payload;
-  },
-  setFileActionsErrorMessages(state: RootState, action: PayloadAction<string[]>) {
-    state.fileActionsErrorMessages = action.payload;
-  },
   setFileActions(state: RootState, action: PayloadAction<FileAction[]>) {
     const fileActionMap: FileActionMap = {};
-    action.payload.map((a) => (fileActionMap[a.id] = a));
+    for (const fileAction of action.payload) fileActionMap[fileAction.id] = fileAction;
     const fileIds = action.payload.map((a) => a.id);
 
-    state.fileActionMap = fileActionMap as FileMap;
+    state.fileActionMap = fileActionMap;
     state.fileActionIds = fileIds;
   },
   updateFileActionMenuItems(state: RootState, action: PayloadAction<[FileActionMenuItem[], FileActionMenuItem[]]>) {
     [state.toolbarItems, state.contextMenuItems] = action.payload;
   },
   setRawFolderChain(state: RootState, action: PayloadAction<FileArray | any>) {
-    const rawFolderChain = action.payload;
-    const { sanitizedArray: folderChain, errorMessages } = sanitizeInputArray('folderChain', rawFolderChain);
-    state.rawFolderChain = rawFolderChain;
+    const { sanitizedArray: folderChain } = sanitizeInputArray('folderChain', action.payload);
     state.folderChain = folderChain;
-    state.folderChainErrorMessages = errorMessages;
   },
-  setRawFiles(state: RootState, action: PayloadAction<FileArray | any>) {
-    const rawFiles = action.payload;
-    const { sanitizedArray: files, errorMessages } = sanitizeInputArray('files', rawFiles);
-    state.rawFiles = rawFiles;
-    state.filesErrorMessages = errorMessages;
-
+  setRawFiles(state: RootState, action: PayloadAction<FileArray>) {
+    const { sanitizedArray: files } = sanitizeInputArray('files', action.payload);
     const fileMap: FileMap = {};
     files.forEach((f) => {
       if (f) fileMap[f.id] = f;
@@ -57,26 +44,13 @@ const reducers = {
     const fileIds = files.map((f) => (f ? f.id : null));
     const cleanFileIds = fileIds.filter((f) => !!f) as string[];
 
+    state.files = files;
     state.fileMap = fileMap;
     state.fileIds = fileIds;
     state.cleanFileIds = cleanFileIds;
 
-    // Cleanup selection
     for (const selectedFileId of Object.keys(state.selectionMap)) {
       if (!fileMap[selectedFileId]) {
-        delete state.selectionMap[selectedFileId];
-      }
-    }
-  },
-  setSortedFileIds(state: RootState, action: PayloadAction<Nullable<string>[]>) {
-    state.sortedFileIds = action.payload;
-  },
-  setHiddenFileIds(state: RootState, action: PayloadAction<FileIdTrueMap>) {
-    state.hiddenFileIdMap = action.payload;
-
-    // Cleanup selection
-    for (const selectedFileId of Object.keys(state.selectionMap)) {
-      if (state.hiddenFileIdMap[selectedFileId]) {
         delete state.selectionMap[selectedFileId];
       }
     }

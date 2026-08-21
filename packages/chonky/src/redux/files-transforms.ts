@@ -5,15 +5,24 @@ import { FileArray } from '../types/file.types';
 import { Logger } from '../util/logger';
 
 interface SanitizeFiles {
-  (mode: 'files', rawArray: FileArray | any): {
+  (
+    mode: 'files',
+    rawArray: FileArray | any,
+  ): {
     sanitizedArray: FileArray;
     errorMessages: string[];
   };
-  (mode: 'folderChain', rawArray: Nullable<FileArray> | any): {
+  (
+    mode: 'folderChain',
+    rawArray: Nullable<FileArray> | any,
+  ): {
     sanitizedArray: FileArray;
     errorMessages: string[];
   };
-  (mode: 'fileActions', rawArray: FileAction[] | any): {
+  (
+    mode: 'fileActions',
+    rawArray: FileAction[] | any,
+  ): {
     sanitizedArray: FileAction[];
     errorMessages: string[];
   };

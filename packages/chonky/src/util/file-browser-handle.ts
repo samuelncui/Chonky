@@ -1,16 +1,16 @@
 import React, { useImperativeHandle } from 'react';
-import { useDispatch, useStore } from 'react-redux';
+import { useChonkyDispatch, useChonkyReduxStore } from '../redux/store';
 
 import { reduxActions } from '../redux/reducers';
 import { selectSelectionMap } from '../redux/selectors';
 import { thunkRequestFileAction } from '../redux/thunks/dispatchers.thunks';
 import { FileAction } from '../types/action.types';
 import { FileBrowserHandle } from '../types/file-browser.types';
-import { ChonkyDispatch, RootState } from '../types/redux.types';
+import { ChonkyDispatch } from '../types/redux.types';
 
 export const useFileBrowserHandle = (ref: React.Ref<FileBrowserHandle>) => {
-  const store = useStore<RootState>();
-  const dispatch: ChonkyDispatch = useDispatch();
+  const store = useChonkyReduxStore();
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
 
   useImperativeHandle(
     ref,
