@@ -4,12 +4,8 @@ Notable changes to the `@samuelncui/chonky` packages are documented here.
 
 ## 0.3.1 - 2026-08-21
 
-### Documentation
-
-- Explain why this maintained fork exists.
-- Document supported React and Node.js versions.
-- Add the 0.3.0 breaking changes and migration steps.
-- Point package metadata and documentation to this maintained fork.
+- Add compatibility requirements and a 0.2.7 migration guide.
+- Link both npm packages to the maintained fork and its changelog.
 
 ## 0.3.0 - 2026-08-21
 
