@@ -7,25 +7,17 @@ export const initialRootState: RootState = {
 
   externalFileActionHandler: null,
 
-  rawFileActions: [],
-  fileActionsErrorMessages: [],
   fileActionMap: {},
   fileActionIds: [],
   toolbarItems: [],
   contextMenuItems: [],
 
-  rawFolderChain: null,
-  folderChainErrorMessages: [],
   folderChain: [],
 
-  rawFiles: [],
-  filesErrorMessages: [],
+  files: [],
   fileMap: {},
   fileIds: [],
   cleanFileIds: [],
-
-  sortedFileIds: [],
-  hiddenFileIdMap: {},
 
   focusSearchInput: null,
   searchString: '',

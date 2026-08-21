@@ -38,20 +38,20 @@ This is a fork of [Chonky] by [TimboKZ].
 
 Add the forked npm packages:
 
-```
-yarn add @samuelncui/chonky @samuelncui/chonky-icon-fontawesome
+```shell
+npm install @samuelncui/chonky @samuelncui/chonky-icon-fontawesome
 ```
 
 Add to your app:
 
 ```typescript
-import { FullFileBrowser } from '@samuelncui/chonky'
-import { ChonkyIconFA } from '@samuelncui/chonky-icon-fontawesome'
+import { FullFileBrowser } from '@samuelncui/chonky';
+import { ChonkyIconFA } from '@samuelncui/chonky-icon-fontawesome';
 
 export function MyComponent() {
     return <FullFileBrowser
       files={[]}
-      darkMode={true}
+      darkMode
       iconComponent={ChonkyIconFA}
     />
 }

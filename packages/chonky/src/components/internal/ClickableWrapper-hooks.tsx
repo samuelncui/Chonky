@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useChonkySelector } from '../../redux/store';
 import { Nilable, Nullable } from 'tsdef';
 
 import { selectDoubleClickDelay } from '../../redux/selectors';
@@ -20,7 +20,7 @@ export const useClickHandler = (
   onSingleClick: Nilable<MouseClickEventHandler>,
   onDoubleClick: Nilable<MouseClickEventHandler>,
 ) => {
-  const doubleClickDelay = useSelector(selectDoubleClickDelay);
+  const doubleClickDelay = useChonkySelector(selectDoubleClickDelay);
 
   const counter = useRef({
     clickCount: 0,

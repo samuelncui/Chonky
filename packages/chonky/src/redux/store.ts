@@ -1,13 +1,17 @@
 import { useCallback, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 
 import { configureStore } from '@reduxjs/toolkit';
 
-import { RootState } from '../types/redux.types';
+import { ChonkyDispatch, ChonkyStore, RootState } from '../types/redux.types';
 import { useStaticValue } from '../util/hooks-helpers';
 import { rootReducer } from './reducers';
 import { initialRootState } from './state';
 import { useStoreWatchers } from './watchers';
+
+export const useChonkyDispatch = useDispatch.withTypes<ChonkyDispatch>();
+export const useChonkySelector = useSelector.withTypes<RootState>();
+export const useChonkyReduxStore = useStore.withTypes<ChonkyStore>();
 
 export const useChonkyStore = (chonkyInstanceId: string) => {
   const store = useStaticValue(() => {
@@ -42,7 +46,7 @@ export const useParamSelector = <Args extends Array<any>, Value>(
     // eslint-disable-next-line
     [parametrizedSelector, ...selectorParams],
   );
-  return useSelector(selector);
+  return useChonkySelector(selector);
 };
 
 /**
@@ -50,7 +54,7 @@ export const useParamSelector = <Args extends Array<any>, Value>(
  * main Chonky method.
  */
 export const useDTE = <Args extends Array<any>>(actionCreator: (...args: Args) => any, ...selectorParams: Args) => {
-  const dispatch = useDispatch();
+  const dispatch = useChonkyDispatch();
   useEffect(
     () => {
       dispatch(actionCreator(...selectorParams));
@@ -61,7 +65,7 @@ export const useDTE = <Args extends Array<any>>(actionCreator: (...args: Args) =
 };
 
 export const usePropReduxUpdate = <Payload extends any>(actionCreator: (payload: Payload) => any, payload: Payload) => {
-  const dispatch = useDispatch();
+  const dispatch = useChonkyDispatch();
   useEffect(() => {
     dispatch(actionCreator(payload));
   }, [dispatch, actionCreator, payload]);

@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../redux/store';
 import { Nullable } from 'tsdef';
 
 import { ChonkyActions } from '../action-definitions/index';
@@ -21,7 +21,7 @@ import { SortOrder } from '../types/sort.types';
 import { FileHelper } from './file-helper';
 
 export const useFileActionTrigger = (fileActionId: string) => {
-  const dispatch: any = useDispatch();
+  const dispatch: any = useChonkyDispatch();
   const fileAction = useParamSelector(selectFileActionData, fileActionId);
   return useCallback(() => dispatch(thunkRequestFileAction(fileAction, undefined)), [dispatch, fileAction]);
 };
@@ -29,12 +29,12 @@ export const useFileActionTrigger = (fileActionId: string) => {
 export const useFileActionProps = (
   fileActionId: string,
 ): { icon: Nullable<ChonkyIconName | string>; active: boolean; disabled: boolean } => {
-  const parentFolder = useSelector(selectParentFolder);
-  const forceEnableOpenParent = useSelector(selectForceEnableOpenParent);
-  const fileViewConfig = useSelector(selectFileViewConfig);
+  const parentFolder = useChonkySelector(selectParentFolder);
+  const forceEnableOpenParent = useChonkySelector(selectForceEnableOpenParent);
+  const fileViewConfig = useChonkySelector(selectFileViewConfig);
 
-  const sortActionId = useSelector(selectSortActionId);
-  const sortOrder = useSelector(selectSortOrder);
+  const sortActionId = useChonkySelector(selectSortActionId);
+  const sortOrder = useChonkySelector(selectSortOrder);
 
   const action = useParamSelector(selectFileActionData, fileActionId);
   // @ts-ignore
@@ -88,5 +88,14 @@ export const useFileActionProps = (
     }
 
     return { icon, active, disabled };
-  }, [parentFolder, fileViewConfig, sortActionId, sortOrder, action, optionValue, actionSelectionEmpty]);
+  }, [
+    parentFolder,
+    fileViewConfig,
+    sortActionId,
+    sortOrder,
+    action,
+    optionValue,
+    actionSelectionEmpty,
+    forceEnableOpenParent,
+  ]);
 };

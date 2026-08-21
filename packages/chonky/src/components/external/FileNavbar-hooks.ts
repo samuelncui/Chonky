@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { Nullable } from 'tsdef';
 
 import { ChonkyActions } from '../../action-definitions/index';
@@ -16,8 +16,8 @@ export interface FolderChainItem {
 }
 
 export const useFolderChainItems = (): FolderChainItem[] => {
-  const folderChain = useSelector(selectFolderChain);
-  const dispatch: ChonkyDispatch = useDispatch();
+  const folderChain = useChonkySelector(selectFolderChain);
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
 
   const folderChainItems = useMemo(() => {
     const items: FolderChainItem[] = [];
