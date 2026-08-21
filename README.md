@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://chonky.io/chonky-logo-v2.png" alt="Chonky v2 Logo" width="500" />
+    <img src="./logo/chonky-logo-v2.png" alt="Chonky v2 Logo" width="500" />
     <br />
     <a href="https://www.npmjs.com/package/@samuelncui/chonky">
         <img
@@ -10,13 +10,7 @@
     <a href="https://tldrlegal.com/license/mit-license">
         <img
             alt="MIT license"
-            src="https://img.shields.io/npm/l/chonky?style=flat&colorB=dcd67a"
-        />
-    </a>
-    <a href="https://discord.gg/4HJaFn9">
-        <img
-            alt="Chat on Discord"
-            src="https://img.shields.io/discord/696033621986770957?label=discord&style=flat&colorB=08acee"
+            src="https://img.shields.io/npm/l/%40samuelncui%2Fchonky?style=flat&colorB=dcd67a"
         />
     </a>
     <br />
@@ -29,12 +23,27 @@ browsing experience in your browser. This means your users can make selections, 
 & drop files, toggle between _List_ and _Grid_ file views, use keyboard shortcuts, and
 much more!
 
-This is a fork of [Chonky] by [TimboKZ].
+This is a maintained fork of [Chonky] by [TimboKZ].
 
 [Chonky]: https://github.com/TimboKZ/Chonky
 [TimboKZ]: https://github.com/TimboKZ
 
-### Usage
+## Why this fork
+
+The upstream project is no longer actively maintained. This fork keeps Chonky
+usable in current React applications by updating its framework dependencies,
+replacing retired libraries, fixing integration issues, and improving large
+directory performance. The packages use the `@samuelncui` scope so applications
+can adopt the maintained fork explicitly.
+
+See the [changelog](./CHANGELOG.md) before upgrading from an earlier release.
+
+## Requirements
+
+- React and React DOM 19.2.x
+- Node.js 22.12 or later
+
+## Usage
 
 Add the forked npm packages:
 
@@ -49,15 +58,14 @@ import { FullFileBrowser } from '@samuelncui/chonky';
 import { ChonkyIconFA } from '@samuelncui/chonky-icon-fontawesome';
 
 export function MyComponent() {
-    return <FullFileBrowser
-      files={[]}
-      darkMode
-      iconComponent={ChonkyIconFA}
-    />
+  return <FullFileBrowser files={[]} darkMode iconComponent={ChonkyIconFA} />;
 }
 ```
 
-### [Click here for documentation and examples.](https://chonky.io/)
+See the runnable [example](./packages/chonky/example) and the
+[`@samuelncui/chonky` package documentation](./packages/chonky/README.md).
+The upstream [Chonky documentation](https://chonky.io/) remains useful for
+general concepts, but APIs and compatibility may differ from this fork.
 
 > Please [create an issue](https://github.com/samuelncui/Chonky/issues) if you have a
 > problem or want to request a feature.
