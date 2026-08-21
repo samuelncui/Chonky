@@ -4,7 +4,7 @@
  * @license MIT
  */
 
-import React, { CSSProperties, useContext } from 'react';
+import React, { useContext } from 'react';
 import { useIntl } from 'react-intl';
 
 import { ChonkyIconName } from '../../types/icons.types';
@@ -13,18 +13,12 @@ import { ChonkyIconContext } from '../../util/icon-helper';
 import { makeGlobalChonkyStyles } from '../../util/styles';
 
 export interface FileListEmptyProps {
-  width: number;
   height: number;
 }
 
-export const FileListEmpty: React.FC<FileListEmptyProps> = (props) => {
-  const { width, height } = props;
+export const FileListEmpty: React.FC<FileListEmptyProps> = ({ height }) => {
   const classes = useStyles();
   const ChonkyIcon = useContext(ChonkyIconContext);
-  const style: CSSProperties = {
-    width,
-    height,
-  };
 
   const intl = useIntl();
   const emptyString = intl.formatMessage({
@@ -33,7 +27,7 @@ export const FileListEmpty: React.FC<FileListEmptyProps> = (props) => {
   });
 
   return (
-    <div className={classes.fileListEmpty} style={style}>
+    <div className={classes.fileListEmpty} style={{ height }}>
       <div className={classes.fileListEmptyContent}>
         <ChonkyIcon icon={ChonkyIconName.folderOpen} />
         &nbsp; {emptyString}
@@ -44,6 +38,8 @@ export const FileListEmpty: React.FC<FileListEmptyProps> = (props) => {
 
 const useStyles = makeGlobalChonkyStyles((theme) => ({
   fileListEmpty: {
+    minHeight: 64,
+    width: '100%',
     color: theme.palette.text.disabled,
     position: 'relative',
     textAlign: 'center',

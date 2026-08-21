@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { Nullable } from 'tsdef';
 
 import { ChonkyActions } from '../../action-definitions/index';
@@ -20,8 +20,8 @@ export const findClosestChonkyFileId = (element: HTMLElement | any): Nullable<st
 };
 
 export const useContextMenuTrigger = () => {
-  const dispatch: ChonkyDispatch = useDispatch();
-  const contextMenuMountedRef = useInstanceVariable(useSelector(selectContextMenuMounted));
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
+  const contextMenuMountedRef = useInstanceVariable(useChonkySelector(selectContextMenuMounted));
   return useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       // Use default browser context menu when Chonky context menu component
@@ -47,6 +47,6 @@ export const useContextMenuTrigger = () => {
 };
 
 export const useContextMenuDismisser = () => {
-  const dispatch: ChonkyDispatch = useDispatch();
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
   return useCallback(() => dispatch(reduxActions.hideContextMenu()), [dispatch]);
 };

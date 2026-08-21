@@ -6,11 +6,11 @@
 
 import React from 'react';
 import { useIntl } from 'react-intl';
-import { useSelector } from 'react-redux';
+import { useChonkySelector } from '../../redux/store';
 
 import Typography from '@mui/material/Typography';
 
-import { selectHiddenFileCount, selectors, selectSelectionSize } from '../../redux/selectors';
+import { selectHiddenFileCount, selectSelectionSize, selectors } from '../../redux/selectors';
 import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
 
@@ -19,9 +19,9 @@ export interface ToolbarInfoProps {}
 export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
   const classes = useStyles();
 
-  const displayFileIds = useSelector(selectors.getDisplayFileIds);
-  const selectionSize = useSelector(selectSelectionSize);
-  const hiddenCount = useSelector(selectHiddenFileCount);
+  const fileCount = useChonkySelector(selectors.getDisplayFileIds).length;
+  const selectionSize = useChonkySelector(selectSelectionSize);
+  const hiddenCount = useChonkySelector(selectHiddenFileCount);
 
   const intl = useIntl();
   const fileCountString = intl.formatMessage(
@@ -33,7 +33,7 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
                 other {# items}
             }`,
     },
-    { fileCount: displayFileIds.length },
+    { fileCount },
   );
   const selectedString = intl.formatMessage(
     {

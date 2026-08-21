@@ -49,7 +49,7 @@ export const FolderChainButton: React.FC<FolderChainButtonProps> = React.memo(({
   const icon = first && file?.folderChainIcon === undefined ? ChonkyIconName.folder : file?.folderChainIcon;
 
   return (
-    <div className={classes.buttonContainer} ref={file ? drop : null}>
+    <div className={classes.buttonContainer} ref={file ? (element) => void drop(element) : null}>
       {file && dndIconName && (
         <div className={classes.dndIndicator}>
           <ChonkyIcon icon={dndIconName} fixedWidth={true} />

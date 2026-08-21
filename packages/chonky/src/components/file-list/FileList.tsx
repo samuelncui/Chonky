@@ -1,6 +1,5 @@
-import React, { UIEvent, useCallback, useContext, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import React, { UIEvent, useContext, useMemo } from 'react';
+import { useChonkySelector } from '../../redux/store';
 
 import { ChonkyActions } from '../../action-definitions/index';
 import { selectCurrentFolder, selectFileViewConfig, selectors } from '../../redux/selectors';
@@ -23,10 +22,10 @@ interface StyleState {
 }
 
 export const FileList: React.FC<FileListProps> = React.memo((props: FileListProps) => {
-  const displayFileIds = useSelector(selectors.getDisplayFileIds);
-  const viewConfig = useSelector(selectFileViewConfig);
+  const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
+  const viewConfig = useChonkySelector(selectFileViewConfig);
 
-  const currentFolder = useSelector(selectCurrentFolder);
+  const currentFolder = useChonkySelector(selectCurrentFolder);
   const { drop, dndCanDrop, dndIsOverCurrent } = useFileDrop({ file: currentFolder });
   const styleState = useMemo<StyleState>(() => ({ dndCanDrop, dndIsOverCurrent }), [dndCanDrop, dndIsOverCurrent]);
 
@@ -34,29 +33,16 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
   const classes = useStyles(viewConfig);
   const { onScroll } = props;
 
-  // In Chonky v0.x, this field was user-configurable. In Chonky v1.x+, we hardcode
-  // this to `true` to simplify configuration. Users can just wrap Chonky in their
-  // own `div` if they want to have finer control over the height.
-  const fillParentContainer = true;
-
-  const listRenderer = useCallback(
-    ({ width, height }: { width: number; height: number }) => {
-      if (displayFileIds.length === 0) {
-        return <FileListEmpty width={width} height={viewConfig.entryHeight} />;
-      } else if (viewConfig.mode === FileViewMode.List) {
-        return <ListContainer width={width} height={height} />;
-      } else {
-        return <GridContainer width={width} height={height} />;
-      }
-    },
-    [displayFileIds, viewConfig],
-  );
+  const list = useMemo(() => {
+    if (displayFileIds.length === 0) return <FileListEmpty height={viewConfig.entryHeight} />;
+    if (viewConfig.mode === FileViewMode.List) return <ListContainer onScroll={onScroll} />;
+    return <GridContainer onScroll={onScroll} />;
+  }, [displayFileIds.length, onScroll, viewConfig.entryHeight, viewConfig.mode]);
 
   const ChonkyIcon = useContext(ChonkyIconContext);
   return (
     <div
-      onScroll={onScroll}
-      ref={drop}
+      ref={(element) => void drop(element)}
       className={c([classes.fileListWrapper, localClasses.fileListWrapper])}
       role="list"
     >
@@ -65,7 +51,7 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
           <ChonkyIcon icon={dndCanDrop ? ChonkyIconName.dndCanDrop : ChonkyIconName.dndCannotDrop} />
         </div>
       </div>
-      <AutoSizer disableHeight={!fillParentContainer}>{listRenderer}</AutoSizer>
+      {list}
     </div>
   );
 });
@@ -74,12 +60,24 @@ FileList.displayName = 'FileList';
 const useLocalStyles = makeLocalChonkyStyles((theme) => ({
   fileListWrapper: {
     minHeight: ChonkyActions.EnableGridView.fileViewConfig.entryHeight + 2,
-    background: (state: StyleState) =>
-      state.dndIsOverCurrent && state.dndCanDrop
-        ? state.dndCanDrop
-          ? getStripeGradient(theme.dnd.fileListCanDropMaskOne, theme.dnd.fileListCanDropMaskTwo)
-          : getStripeGradient(theme.dnd.fileListCannotDropMaskOne, theme.dnd.fileListCannotDropMaskTwo)
-        : 'none',
+    position: 'relative',
+    background: (state: StyleState) => {
+      if (!state.dndIsOverCurrent) return 'none';
+      if (state.dndCanDrop) {
+        return getStripeGradient(theme.dnd.fileListCanDropMaskOne, theme.dnd.fileListCanDropMaskTwo);
+      }
+      return getStripeGradient(theme.dnd.fileListCannotDropMaskOne, theme.dnd.fileListCannotDropMaskTwo);
+    },
+    '&:before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: -theme.margins.rootLayoutMargin,
+      right: -theme.margins.rootLayoutMargin,
+      borderTop: `solid 1px ${theme.palette.divider}`,
+      pointerEvents: 'none',
+      zIndex: 1,
+    },
   },
   dndDropZone: {
     display: (state: StyleState) =>

@@ -1,4 +1,4 @@
-.tmp
 dist/
-.cache/
 coverage/
+playwright-report/
+test-results/

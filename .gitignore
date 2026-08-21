@@ -1,33 +1,27 @@
-# JetBrains IDEs, Vim swap files
+# Editors
 .idea/
-*.swp
-
-# VS Code for external contributors
-.vscode
+.vscode/
+*.sw?
+*~
 
 # Dependencies
 node_modules/
-/.pnp
-.pnp.js
-
-# Lerna
-lerna-*.log
+.pnpm-store/
 
 # Testing
-/coverage
+coverage/
+playwright-report/
+test-results/
 
-# Production
-lib/
+# Generated output
 dist/
 build/
+.cache/
+.vite/
 
-# Misc
+# Local files
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.env
+.env.*
+!.env.example
+*.log

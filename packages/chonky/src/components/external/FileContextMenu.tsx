@@ -6,7 +6,7 @@
 
 import React, { ReactElement, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 
 import ListSubheader from '@mui/material/ListSubheader';
 import Menu from '@mui/material/Menu';
@@ -22,7 +22,7 @@ import { ChonkyDispatch } from '../../types/redux.types';
 export interface FileContextMenuProps {}
 
 export const FileContextMenu: React.FC<FileContextMenuProps> = React.memo(() => {
-  const dispatch: ChonkyDispatch = useDispatch();
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
   useEffect(() => {
     dispatch(reduxActions.setContextMenuMounted(true));
     return () => {
@@ -39,8 +39,8 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = React.memo(() => 
     { shortcut: <strong>Alt + Right Click</strong> },
   );
 
-  const contextMenuConfig = useSelector(selectContextMenuConfig);
-  const contextMenuItems = useSelector(selectContextMenuItems);
+  const contextMenuConfig = useChonkySelector(selectContextMenuConfig);
+  const contextMenuItems = useChonkySelector(selectContextMenuItems);
 
   const hideContextMenu = useContextMenuDismisser();
   const contextMenuItemComponents = useMemo(() => {
@@ -80,7 +80,6 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = React.memo(() => 
   return (
     <Menu
       elevation={2}
-      disablePortal
       onClose={hideContextMenu}
       transitionDuration={150}
       open={!!contextMenuConfig}

@@ -33,14 +33,11 @@ export const selectParentFolder = (state: RootState) => {
   return parentFolder;
 };
 
-export const selectRawFiles = (state: RootState) => state.rawFiles;
+export const selectFiles = (state: RootState) => state.files;
 export const selectFileMap = (state: RootState) => state.fileMap;
 export const selectCleanFileIds = (state: RootState) => state.cleanFileIds;
 export const selectFileData = (fileId: Nullable<string>) => (state: RootState) =>
   fileId ? selectFileMap(state)[fileId] : null;
-
-export const selectHiddenFileIdMap = (state: RootState) => state.hiddenFileIdMap;
-export const selectHiddenFileCount = (state: RootState) => Object.keys(selectHiddenFileIdMap(state)).length;
 
 export const selectFocusSearchInput = (state: RootState) => state.focusSearchInput;
 export const selectSearchString = (state: RootState) => state.searchString;
@@ -114,9 +111,8 @@ const makeGetOptionValue = (optionId: string, defaultValue: any = undefined) =>
     return value;
   });
 const makeGetFiles = (fileIdsSelector: (state: RootState) => Nullable<string>[]) =>
-  createSelector(
-    [getFileMap, fileIdsSelector],
-    (fileMap, fileIds): FileArray => fileIds.map((fileId) => (fileId && fileMap[fileId] ? fileMap[fileId] : null)),
+  createSelector([getFileMap, fileIdsSelector], (fileMap, fileIds): FileArray =>
+    fileIds.map((fileId) => (fileId && fileMap[fileId] ? fileMap[fileId] : null)),
   );
 const getSortedFileIds = createSelector(
   [
@@ -171,7 +167,7 @@ const getSearchFilteredFileIds = createSelector(
   (cleanFileIds, searchString, searcher) =>
     searchString ? searcher.search(searchString).map((f) => f.id) : cleanFileIds,
 );
-const getHiddenFileIdMap = createSelector(
+export const selectHiddenFileIdMap = createSelector(
   [getSearchFilteredFileIds, makeGetFiles(getCleanFileIds), makeGetOptionValue(OptionIds.ShowHiddenFiles)],
   (searchFilteredFileIds, cleanFiles, showHiddenFiles) => {
     const searchFilteredFileIdsSet = new Set(searchFilteredFileIds);
@@ -189,19 +185,26 @@ const getHiddenFileIdMap = createSelector(
     return hiddenFileIdMap;
   },
 );
+export const selectHiddenFileCount = createSelector(
+  [selectHiddenFileIdMap],
+  (hiddenFileIdMap) => Object.keys(hiddenFileIdMap).length,
+);
 const getDisplayFileIds = createSelector(
-  [getSortedFileIds, getHiddenFileIdMap],
+  [getSortedFileIds, selectHiddenFileIdMap],
   /** Returns files that will actually be shown to the user. */
   (sortedFileIds, hiddenFileIdMap) => sortedFileIds.filter((id) => !id || !hiddenFileIdMap[id]),
 );
 const getLastClickIndex = createSelector(
-  [_getLastClick, getSortedFileIds],
+  [_getLastClick, getDisplayFileIds],
   /** Returns the last click index after ensuring it is actually still valid. */
   (lastClick, displayFileIds) => {
+    const index = lastClick?.index;
     if (
       !lastClick ||
-      lastClick.index > displayFileIds.length - 1 ||
-      lastClick.fileId != displayFileIds[lastClick.index]
+      index === undefined ||
+      index < 0 ||
+      index > displayFileIds.length - 1 ||
+      lastClick.fileId != displayFileIds[index]
     ) {
       return null;
     }
@@ -225,7 +228,7 @@ export const selectors = {
   getSortedFileIds,
   getSearcher,
   getSearchFilteredFileIds,
-  getHiddenFileIdMap,
+  getHiddenFileIdMap: selectHiddenFileIdMap,
   getDisplayFileIds,
   getLastClickIndex,
 

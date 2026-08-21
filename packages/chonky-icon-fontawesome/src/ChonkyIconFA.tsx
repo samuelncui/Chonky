@@ -64,7 +64,7 @@ import { faToggleOn } from '@fortawesome/free-solid-svg-icons/faToggleOn';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome';
 import { ChonkyIconName, ChonkyIconProps } from '@samuelncui/chonky';
 import React from 'react';
 
@@ -155,15 +155,11 @@ const IconMap: { [iconName in ChonkyIconName]: any } = {
 } as const;
 
 export const ChonkyIconFA: React.FC<ChonkyIconProps> = React.memo((props) => {
-    const { icon } = props;
+    const { icon, style, ...otherProps } = props;
 
-    let faIcon: any; // FontAwesome `IconDefinition`
+    let faIcon: FontAwesomeIconProps['icon'];
     if (typeof icon === 'object') faIcon = icon;
     else faIcon = IconMap[icon as keyof typeof IconMap] ?? IconMap.fallbackIcon;
 
-    const faProps = {
-        ...props,
-        icon: faIcon,
-    } as const;
-    return <FontAwesomeIcon {...faProps} />;
+    return <FontAwesomeIcon {...otherProps} icon={faIcon} style={style as FontAwesomeIconProps['style']} />;
 });

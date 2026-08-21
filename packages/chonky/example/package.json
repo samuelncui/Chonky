@@ -1,20 +1,16 @@
 {
-  "name": "example",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
+  "name": "@samuelncui/chonky-example",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "start": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "vite build",
+    "dev": "vite --force --host 127.0.0.1 --port 4173 --strictPort",
+    "typecheck": "tsc6 --noEmit"
   },
   "dependencies": {
-    "react-app-polyfill": "^3.0.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.10",
-    "parcel": "^2.8.3",
-    "process": "^0.11.10",
-    "typescript": "^5.0.0"
+    "@samuelncui/chonky": "workspace:*",
+    "@samuelncui/chonky-icon-fontawesome": "workspace:*",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   }
 }

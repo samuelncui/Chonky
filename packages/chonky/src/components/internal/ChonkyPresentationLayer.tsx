@@ -7,7 +7,7 @@
 import Box from '@mui/material/Box';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import React, { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 
 import { reduxActions } from '../../redux/reducers';
 import { selectClearSelectionOnOutsideClick, selectFileActionIds, selectIsDnDDisabled } from '../../redux/selectors';
@@ -24,10 +24,10 @@ export interface ChonkyPresentationLayerProps {
 }
 
 export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = ({ children }) => {
-  const dispatch: ChonkyDispatch = useDispatch();
-  const fileActionIds = useSelector(selectFileActionIds);
-  const dndDisabled = useSelector(selectIsDnDDisabled);
-  const clearSelectionOnOutsideClick = useSelector(selectClearSelectionOnOutsideClick);
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
+  const fileActionIds = useChonkySelector(selectFileActionIds);
+  const dndDisabled = useChonkySelector(selectIsDnDDisabled);
+  const clearSelectionOnOutsideClick = useChonkySelector(selectClearSelectionOnOutsideClick);
 
   // Deal with clicks outside of Chonky
   const handleClickAway = useCallback(

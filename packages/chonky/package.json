@@ -1,103 +1,65 @@
 {
   "name": "@samuelncui/chonky",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "A File Browser component for React",
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/chonky.cjs",
+  "module": "dist/chonky.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/chonky.esm.js",
+      "require": "./dist/chonky.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
-    "node": ">=10"
+    "node": ">=22.12"
   },
   "scripts": {
-    "start": "dts watch",
-    "build": "dts build",
-    "test": "dts test --passWithNoTests",
-    "lint": "dts lint",
-    "prepare": "dts build",
-    "size": "size-limit",
-    "analyze": "size-limit --why",
-    "format": "prettier --config ../../.prettierrc.js --ignore-path ../../.prettierignore . --write",
-    "format-check": "prettier --config ../../.prettierrc.js --ignore-path ../../.prettierignore --check ."
+    "dev": "vite build --watch",
+    "build": "vite build && tsc6 --project tsconfig.build.json",
+    "typecheck": "tsc6 --project tsconfig.json",
+    "test": "vitest run",
+    "prepack": "pnpm run build"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "dts lint"
-    }
-  },
-  "prettier": {
-    "trailingComma": "es5",
-    "tabWidth": 2,
-    "semi": true,
-    "singleQuote": true,
-    "useTabs": false,
-    "printWidth": 88
-  },
-  "module": "dist/chonky.esm.js",
-  "size-limit": [
-    {
-      "path": "dist/chonky.cjs.production.min.js",
-      "limit": "10 KB"
-    },
-    {
-      "path": "dist/chonky.esm.js",
-      "limit": "10 KB"
-    }
-  ],
   "devDependencies": {
-    "@babel/core": "^7.21.0",
-    "@size-limit/preset-small-lib": "^8.2.4",
-    "@testing-library/react": "^14.0.0",
-    "babel-loader": "^9.1.2",
-    "dts-cli": "^1.6.3",
-    "husky": "^8.0.3",
-    "prettier": "^2.8.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-is": "^18.2.0",
-    "size-limit": "^8.2.4",
-    "tslib": "^2.5.0",
-    "typescript": "^5.0.0"
+    "@types/fuzzy-search": "^2.1.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
-    "@mui/material": "^5.11.12",
-    "@mui/styles": "^5.11.12",
-    "@reduxjs/toolkit": "^1.9.3",
-    "@types/classnames": "^2.2.11",
-    "@types/fuzzy-search": "^2.1.0",
-    "@types/memoizee": "^0.4.5",
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11",
-    "@types/react-redux": "^7.1.25",
-    "@types/react-virtualized-auto-sizer": "^1.0.0",
-    "@types/react-window": "^1.8.2",
-    "@types/redux-watch": "^1.1.0",
-    "@types/shortid": "^0.0.29",
-    "classnames": "^2.2.6",
+    "@emotion/css": "^11.13.5",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.3.1",
+    "@reduxjs/toolkit": "^2.12.0",
+    "classnames": "^2.5.1",
     "deepmerge": "^4.3.0",
     "exact-trie": "^1.0.13",
     "fast-sort": "^3.2.1",
-    "filesize": "^10.0.6",
+    "filesize": "^11.0.22",
     "fuzzy-search": "^3.2.1",
     "hotkeys-js": "^3.8.3",
-    "immer": "9.0.21",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
-    "react-intl": "^6.2.10",
-    "react-jss": "^10.10.0",
-    "react-redux": "^8.0.5",
-    "react-virtualized-auto-sizer": "^1.0.5",
-    "react-window": "^1.8.6",
-    "redux-watch": "^1.2.0",
-    "shortid": "^2.2.16",
+    "react-intl": "^10.1.22",
+    "react-redux": "^9.3.0",
+    "react-virtuoso": "^4.18.12",
     "tsdef": "^0.0.14"
   },
   "homepage": "https://chonky.io/",
@@ -108,10 +70,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TimboKZ/Chonky.git"
+    "url": "git+https://github.com/samuelncui/Chonky.git"
   },
   "bugs": {
-    "url": "https://github.com/TimboKZ/Chonky/issues"
+    "url": "https://github.com/samuelncui/Chonky/issues"
   },
   "keywords": [
     "file",

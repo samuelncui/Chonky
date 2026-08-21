@@ -48,7 +48,13 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo((props) =>
     [classes.activeButton]: !!active,
   });
   return (
-    <Button className={className} onClick={onClick} title={tooltip ? tooltip : text} disabled={disabled || !onClick}>
+    <Button
+      aria-label={tooltip || text}
+      className={className}
+      onClick={onClick}
+      title={tooltip || text}
+      disabled={disabled || !onClick}
+    >
       {iconComponent}
       {text && !iconOnly && <span>{text}</span>}
       {dropdown && text && !iconOnly && (
