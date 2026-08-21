@@ -1,15 +1,53 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": ["packages/*"],
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "packages/*",
+    "packages/chonky/example"
+  ],
+  "scripts": {
+    "build": "pnpm --recursive --if-present run build",
+    "e2e": "playwright test",
+    "typecheck": "pnpm --recursive --if-present run typecheck",
+    "test": "pnpm --recursive --if-present run test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm test && pnpm build && pnpm typecheck"
+  },
   "homepage": "https://chonky.io/",
   "author": {
     "name": "Timur Kuzhagaliyev",
     "email": "tim.kuzh@gmail.com",
     "url": "https://foxypanda.me/"
   },
-  "resolutions": {
-    "**/typescript": "5.0.2",
-    "**/immer": "9.0.21"
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@fortawesome/fontawesome-common-types",
+      "@fortawesome/free-brands-svg-icons"
+    ],
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.13.3",
+    "@vitejs/plugin-react": "^6.1.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.67.0",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   }
 }

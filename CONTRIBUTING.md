@@ -1,41 +1,34 @@
 # Contributing to Chonky
 
-https://discord.gg/4HJaFn9
+## Development setup
 
-## Setting up the development environment
+Use Node.js 24 and Corepack. The repository pins pnpm in `package.json`.
 
-1. Clone the repository and bootstrap lerna. This will wire up all Chonky packages 
-   to each other:
-    ```bash
-    git clone git@github.com:TimboKZ/Chonky.git
-    cd Chonky
-    git checkout 2.x-dev
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm check
+pnpm e2e
+```
 
-    yarn install
-    lerna bootstrap
-    ```
+During development, run the main package build in watch mode:
 
-2. In main `chonky/` package, start the TSDX watcher which will transpile TS in real time:
-   ```bash
-   cd packages/chonky/
-   yarn start
-   # Keep the script running
-   ```
+```bash
+pnpm --filter @samuelncui/chonky dev
+```
 
-3. Build the `chonky-icon-fontawesome/` package:
-   ```bash
-   cd packages/chonky-icon-fontawesome/
-   yarn build
-   ```
+The browser tests run against the example application in
+`packages/chonky/example`. Before submitting a change, run `pnpm check` and
+`pnpm e2e`.
 
-4. In a separate shell, start the Storybook server to test the changes. It will
-   hot-reload when you change Chonky source code.
-   ```bash
-   cd packages/website/
-   yarn storybook
-   # Keep the script running
-   ```
+## Publishing
 
-## Making a PR
+Both npm packages use the same version. Create a GitHub release whose tag is
+`v<version>` after CI passes. The Publish workflow validates the versions,
+builds both tarballs, and publishes the core package before the icon package
+through npm trusted publishing.
 
-All PRs should be created against `2.x-dev` branch.
+Configure each npm package with the GitHub repository `samuelncui/Chonky` and
+workflow filename `publish.yml` as its trusted publisher. The workflow uses
+OIDC and does not require an npm token in GitHub secrets.

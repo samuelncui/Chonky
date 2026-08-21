@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import watch from 'redux-watch';
 
 import { Store } from '@reduxjs/toolkit';
 
@@ -11,11 +10,14 @@ import { thunkRequestFileAction } from './thunks/dispatchers.thunks';
 
 export const useStoreWatchers = (store: Store<RootState>) => {
   useEffect(() => {
-    const selectionWatcher = watch(() => selectSelectionMap(store.getState()));
-    const onSelectionChange = (newSelection: FileSelection, oldSelection: FileSelection) => {
+    let previousSelection = selectSelectionMap(store.getState());
+    return store.subscribe(() => {
+      const selectionMap: FileSelection = selectSelectionMap(store.getState());
+
       // We don't check for deep equality here as we expect the
       // reducers to prevent all unnecessary updates.
-      if (newSelection === oldSelection) return;
+      if (selectionMap === previousSelection) return;
+      previousSelection = selectionMap;
 
       // Notify users the selection has changed.
       const selectedFilesIds = selectSelectedFileIds(store.getState());
@@ -25,11 +27,6 @@ export const useStoreWatchers = (store: Store<RootState>) => {
           selection,
         }) as any,
       );
-    };
-
-    const unsubscribeCallbacks = [store.subscribe(selectionWatcher(onSelectionChange))];
-    return () => {
-      for (const unsubscribe of unsubscribeCallbacks) unsubscribe();
-    };
+    });
   }, [store]);
 };

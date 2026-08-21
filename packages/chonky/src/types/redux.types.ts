@@ -7,7 +7,7 @@ import { FileActionMenuItem } from './action-menus.types';
 import { FileAction, FileActionMap } from './action.types';
 import { ContextMenuConfig } from './context-menu.types';
 import { FileViewConfig } from './file-view.types';
-import { FileArray, FileIdTrueMap, FileMap } from './file.types';
+import { FileArray, FileMap } from './file.types';
 import { OptionMap } from './options.types';
 import { FileSelection } from './selection.types';
 import { SortOrder } from './sort.types';
@@ -18,29 +18,20 @@ export type RootState = {
 
   externalFileActionHandler: Nullable<GenericFileActionHandler<FileAction>>;
 
-  // Raw and sanitized file actions
-  rawFileActions: FileAction[] | any;
-  fileActionsErrorMessages: string[];
+  // File actions
   fileActionMap: FileActionMap;
   fileActionIds: string[];
   toolbarItems: FileActionMenuItem[];
   contextMenuItems: FileActionMenuItem[];
 
-  // Raw and sanitized folder chain
-  rawFolderChain: Nullable<FileArray> | any;
-  folderChainErrorMessages: string[];
+  // Folder chain
   folderChain: FileArray;
 
-  // Raw and sanitized files
-  rawFiles: FileArray | any;
-  filesErrorMessages: string[];
+  // Files
+  files: FileArray;
   fileMap: FileMap;
   fileIds: Nullable<string>[];
   cleanFileIds: string[];
-
-  // Derivative files
-  sortedFileIds: Nullable<string>[];
-  hiddenFileIdMap: FileIdTrueMap;
 
   // Search
   focusSearchInput: Nullable<() => void>;

@@ -42,6 +42,7 @@ export const ToolbarDropdown: React.FC<ToolbarDropdownProps> = React.memo((props
   if (icon) {
     toolbarButtonProps.icon = icon;
     toolbarButtonProps.iconOnly = true;
+    toolbarButtonProps.tooltip = localizedName;
     toolbarButtonProps.text = '';
   }
 

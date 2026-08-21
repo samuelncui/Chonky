@@ -6,7 +6,7 @@
 
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useDispatch, useSelector } from 'react-redux';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 
 import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
@@ -32,10 +32,10 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
   const classes = useStyles();
   const ChonkyIcon = useContext(ChonkyIconContext);
 
-  const searchInputRef = useRef<HTMLInputElement>();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const dispatch: ChonkyDispatch = useDispatch();
-  const reduxSearchString = useSelector(selectSearchString);
+  const dispatch: ChonkyDispatch = useChonkyDispatch();
+  const reduxSearchString = useChonkySelector(selectSearchString);
 
   const [localSearchString, setLocalSearchString] = useState(reduxSearchString);
   const [debouncedLocalSearchString] = useDebounce(localSearchString, 50);
@@ -85,19 +85,21 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
       placeholder={searchPlaceholderString}
       onChange={handleChange as any}
       inputRef={searchInputRef}
-      InputProps={{
-        onKeyUp: handleKeyUp,
-        startAdornment: (
-          <InputAdornment className={classes.searchIcon} position="start">
-            <ChonkyIcon
-              icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.search}
-              spin={showLoadingIndicator}
-            />
-          </InputAdornment>
-        ),
-        className: classes.searchFieldInput,
+      slotProps={{
+        input: {
+          onKeyUp: handleKeyUp,
+          startAdornment: (
+            <InputAdornment className={classes.searchIcon} position="start">
+              <ChonkyIcon
+                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.search}
+                spin={showLoadingIndicator}
+              />
+            </InputAdornment>
+          ),
+          className: classes.searchFieldInput,
+        },
+        htmlInput: { className: classes.searchFieldInputInner },
       }}
-      inputProps={{ className: classes.searchFieldInputInner }}
     />
   );
 });
@@ -127,6 +129,6 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     height: important(theme.toolbar.size - 4),
     padding: important([0, 8, 0, 0]),
     margin: important(0),
-    '-webkit-appearance': 'none',
+    WebkitAppearance: 'none',
   },
 }));
