@@ -90,6 +90,10 @@ const reducers = {
     state.disableSelection = action.payload;
     if (Object.keys(state.selectionMap).length !== 0) state.selectionMap = {};
   },
+  revealFile(state: RootState, action: PayloadAction<string>) {
+    const revision = (state.revealFileRequest?.revision ?? 0) + 1;
+    state.revealFileRequest = { fileId: action.payload, revision };
+  },
   setFileViewConfig(state: RootState, action: PayloadAction<FileViewConfig>) {
     state.fileViewConfig = action.payload;
   },

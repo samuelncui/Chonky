@@ -33,6 +33,12 @@ export interface FileBrowserHandle {
   setFileSelection(selection: Set<string>, reset?: boolean): void;
 
   /**
+   * Selects a visible file and scrolls it into view.
+   * IDs of files that are not present in the displayed file list are ignored.
+   */
+  revealFile(id: string): void;
+
+  /**
    * Method used to programatically trigger file actions in Chonky.
    * @param action A file action definition object
    * @param payload The payload expected by the action. If action does not expect

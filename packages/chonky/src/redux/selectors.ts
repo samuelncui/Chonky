@@ -61,6 +61,7 @@ export const selectSelectedFilesForAction = (fileActionId: string) => (state: Ro
 export const selectSelectedFilesForActionCount = (fileActionId: string) => (state: RootState) =>
   getSelectedFilesForAction(state, fileActionId)?.length;
 export const selectDisableSelection = (state: RootState) => state.disableSelection;
+export const selectRevealFileRequest = (state: RootState) => state.revealFileRequest;
 export const selectForceEnableOpenParent = (state: RootState) => state.forceEnableOpenParent;
 export const selectHideToolbarInfo = (state: RootState) => state.hideToolbarInfo;
 

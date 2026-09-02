@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import React from 'react';
+import React, { createRef, forwardRef, useImperativeHandle } from 'react';
 import { vi } from 'vitest';
 
 import { FileBrowser } from '../src/components/external/FileBrowser';
@@ -7,19 +7,25 @@ import { FileList } from '../src/components/file-list/FileList';
 import { reduxActions, rootReducer } from '../src/redux/reducers';
 import { selectHiddenFileIdMap, selectors } from '../src/redux/selectors';
 
+const scrollToIndex = vi.fn();
+
 vi.mock('react-virtuoso', () => ({
-  Virtuoso: (props: any) =>
-    React.createElement(
+  Virtuoso: forwardRef((props: any, ref) => {
+    useImperativeHandle(ref, () => ({ scrollToIndex }));
+    return React.createElement(
       'div',
       { 'data-testid': 'virtual-list', 'data-total-count': props.totalCount },
       props.totalCount > 0 ? props.itemContent(0) : null,
-    ),
-  VirtuosoGrid: (props: any) =>
-    React.createElement(
+    );
+  }),
+  VirtuosoGrid: forwardRef((props: any, ref) => {
+    useImperativeHandle(ref, () => ({ scrollToIndex }));
+    return React.createElement(
       'div',
       { 'data-testid': 'virtual-grid', 'data-total-count': props.totalCount },
       props.totalCount > 0 ? props.itemContent(0) : null,
-    ),
+    );
+  }),
 }));
 
 describe('file list', () => {
@@ -72,5 +78,52 @@ describe('file list', () => {
 
     await waitFor(() => expect(container.querySelector('[data-chonky-file-id="folder-b-file"]')).not.toBeNull());
     expect(container.querySelector('[data-chonky-file-id="folder-a-file"]')).toBeNull();
+  });
+
+  beforeEach(() => {
+    scrollToIndex.mockClear();
+  });
+
+  it.each([
+    ['list', 'enable_list_view', 'virtual-list'],
+    ['grid', 'enable_grid_view', 'virtual-grid'],
+  ])('selects and scrolls a revealed file into %s view', async (_view, defaultFileViewActionId, testId) => {
+    const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
+    render(
+      <FileBrowser ref={ref} files={files} defaultFileViewActionId={defaultFileViewActionId} disableDragAndDrop>
+        <FileList />
+      </FileBrowser>,
+    );
+
+    await screen.findByTestId(testId);
+    ref.current?.revealFile('file-b');
+
+    await waitFor(() => expect(ref.current?.getFileSelection()).toEqual(new Set(['file-b'])));
+    expect(scrollToIndex).toHaveBeenCalledWith({ index: 1, align: 'center' });
+  });
+
+  it('ignores a missing reveal target without changing selection', async () => {
+    const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
+    render(
+      <FileBrowser
+        ref={ref}
+        files={files}
+        instanceId="missing-reveal"
+        defaultFileViewActionId="enable_grid_view"
+        disableDragAndDrop
+      >
+        <FileList />
+      </FileBrowser>,
+    );
+
+    await screen.findByTestId('virtual-grid');
+    ref.current?.setFileSelection(new Set(['file-a']));
+    await waitFor(() => expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a'])));
+
+    scrollToIndex.mockClear();
+    ref.current?.revealFile('missing');
+
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
+    expect(scrollToIndex).not.toHaveBeenCalled();
   });
 });

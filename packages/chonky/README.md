@@ -30,6 +30,24 @@ export function FileBrowser() {
 }
 ```
 
+Use a browser ref when an external result needs to be selected and scrolled
+into view:
+
+```tsx
+import { useRef } from 'react';
+import { FileBrowserHandle, FullFileBrowser } from '@samuelncui/chonky';
+
+export function RevealableBrowser() {
+  const browser = useRef<FileBrowserHandle>(null);
+  return (
+    <>
+      <button onClick={() => browser.current?.revealFile('report')}>Show report</button>
+      <FullFileBrowser ref={browser} files={[{ id: 'report', name: 'Report.pdf' }]} />
+    </>
+  );
+}
+```
+
 See the [repository](https://github.com/samuelncui/Chonky) for the runnable
 example and development instructions.
 

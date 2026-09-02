@@ -36,6 +36,7 @@ import { faFileImage } from '@fortawesome/free-solid-svg-icons/faFileImage';
 import { faFilePdf } from '@fortawesome/free-solid-svg-icons/faFilePdf';
 import { faFileWord } from '@fortawesome/free-solid-svg-icons/faFileWord';
 import { faFilm } from '@fortawesome/free-solid-svg-icons/faFilm';
+import { faFilter } from '@fortawesome/free-solid-svg-icons/faFilter';
 import { faFistRaised } from '@fortawesome/free-solid-svg-icons/faFistRaised';
 import { faFolder } from '@fortawesome/free-solid-svg-icons/faFolder';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons/faFolderOpen';
@@ -86,6 +87,7 @@ const IconMap: { [iconName in ChonkyIconName]: any } = {
     [ChonkyIconName.paste]: faPaste,
     [ChonkyIconName.share]: faShareAlt,
     [ChonkyIconName.search]: faSearch,
+    [ChonkyIconName.filter]: faFilter,
     [ChonkyIconName.selectAllFiles]: faObjectGroup,
     [ChonkyIconName.clearSelection]: faEraser,
 
