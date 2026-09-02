@@ -24,7 +24,8 @@ test('renders, searches, selects, and opens files', async ({ page }) => {
   await fileEntry(page, 'photos').dblclick();
   await expect(page.getByTestId('opened-file')).toHaveText('photos');
 
-  const search = page.getByPlaceholder('Search');
+  await page.getByRole('button', { name: 'Filter' }).click();
+  const search = page.getByPlaceholder('Filter');
   await search.fill('bravo');
   await expect(fileEntry(page, 'bravo')).toBeVisible();
   await expect(fileEntry(page, 'alpha')).toHaveCount(0);

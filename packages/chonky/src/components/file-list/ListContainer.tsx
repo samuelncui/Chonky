@@ -4,12 +4,13 @@
  * @license MIT
  */
 
-import React, { CSSProperties, UIEvent, useCallback } from 'react';
+import React, { CSSProperties, UIEvent, useCallback, useEffect, useRef } from 'react';
 import { useChonkySelector } from '../../redux/store';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
-import { selectFileViewConfig, selectors } from '../../redux/selectors';
+import { selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
 import { FileViewMode } from '../../types/file-view.types';
+import { makeGlobalChonkyStyles } from '../../util/styles';
 import { SmartFileEntry } from './FileEntry';
 
 export interface FileListListProps {
@@ -17,8 +18,18 @@ export interface FileListListProps {
 }
 
 export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll }) => {
+  const classes = useStyles();
   const viewConfig = useChonkySelector(selectFileViewConfig);
   const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
+  const revealFileRequest = useChonkySelector(selectRevealFileRequest);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+
+  useEffect(() => {
+    if (!revealFileRequest) return;
+    const index = displayFileIds.indexOf(revealFileRequest.fileId);
+    if (index < 0) return;
+    virtuosoRef.current?.scrollToIndex({ index, align: 'center' });
+  }, [displayFileIds, revealFileRequest]);
 
   const getFileId = useCallback((index: number) => displayFileIds[index] ?? null, [displayFileIds]);
   const getItemKey = useCallback((index: number) => getFileId(index) ?? `loading-file-${index}`, [getFileId]);
@@ -33,6 +44,8 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
 
   return (
     <Virtuoso
+      ref={virtuosoRef}
+      className={classes.listContainer}
       style={containerStyle}
       totalCount={displayFileIds.length}
       fixedItemHeight={viewConfig.entryHeight}
@@ -45,5 +58,11 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
 
 const containerStyle: CSSProperties = {
   height: '100%',
-  width: '100%',
 };
+
+const useStyles = makeGlobalChonkyStyles((theme) => ({
+  listContainer: {
+    width: `calc(100% + ${theme.margins.rootLayoutMargin * 2}px)`,
+    marginLeft: -theme.margins.rootLayoutMargin,
+  },
+}));

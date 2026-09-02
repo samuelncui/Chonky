@@ -57,6 +57,9 @@ export const ListEntry: React.FC<FileEntryProps> = React.memo(({ file, selected,
 const useStyles = makeLocalChonkyStyles((theme) => ({
   listFileEntry: {
     boxShadow: `inset ${theme.palette.divider} 0 -1px 0`,
+    paddingRight: theme.margins.rootLayoutMargin,
+    paddingLeft: theme.margins.rootLayoutMargin,
+    boxSizing: 'border-box',
     fontSize: theme.listFileEntry.fontSize,
     color: ({ dndState }: StyleState) =>
       dndState.dndIsOver ? (dndState.dndCanDrop ? theme.dnd.canDropColor : theme.dnd.cannotDropColor) : 'inherit',

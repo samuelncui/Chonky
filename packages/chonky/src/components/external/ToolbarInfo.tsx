@@ -16,6 +16,14 @@ import { important, makeGlobalChonkyStyles } from '../../util/styles';
 
 export interface ToolbarInfoProps {}
 
+const selectedFileCountMessage = {
+  id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),
+  defaultMessage: `{fileCount, plural,
+                =0 {}
+                other {# selected}
+            }`,
+};
+
 export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
   const classes = useStyles();
 
@@ -35,16 +43,7 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
     },
     { fileCount },
   );
-  const selectedString = intl.formatMessage(
-    {
-      id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),
-      defaultMessage: `{fileCount, plural,
-                =0 {}
-                other {# selected}
-            }`,
-    },
-    { fileCount: selectionSize },
-  );
+  const selectedString = intl.formatMessage(selectedFileCountMessage, { fileCount: selectionSize });
   const hiddenString = intl.formatMessage(
     {
       id: getI18nId(I18nNamespace.Toolbar, 'hiddenFileCount'),
@@ -75,17 +74,23 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
 const useStyles = makeGlobalChonkyStyles((theme) => ({
   infoContainer: {
     height: theme.toolbar.size,
+    alignItems: 'center',
+    minWidth: 0,
+    width: '100%',
     display: 'flex',
   },
   infoText: {
     lineHeight: important(theme.toolbar.lineHeight),
     fontSize: important(theme.toolbar.fontSize),
     marginLeft: important(12),
-    height: theme.toolbar.size,
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
   },
   extraInfoSpan: {
     marginRight: important(8),
     marginLeft: important(8),
+    fontVariantNumeric: 'tabular-nums',
     opacity: 0.8,
   },
   selectionSizeText: {

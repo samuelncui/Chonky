@@ -2,6 +2,12 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
+## 0.3.2 - 2026-09-01
+
+- Add `FileBrowserHandle.revealFile(id)` to select a displayed file and scroll
+  it into view in list or grid mode.
+- Add a single-row toolbar layout with stable filter, summary, extension, and action regions.
+
 ## 0.3.1 - 2026-08-21
 
 - Add compatibility requirements and a 0.2.7 migration guide.

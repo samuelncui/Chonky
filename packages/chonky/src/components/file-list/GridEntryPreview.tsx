@@ -203,16 +203,14 @@ export const useCommonEntryStyles = makeLocalChonkyStyles(() => ({
       ')',
     backgroundColor: 'rgba(0, 153, 255, .14)',
     position: 'absolute',
-    height: '100%',
-    width: '100%',
+    inset: 0,
     zIndex: 10,
   },
   focusIndicator: {
     display: (state: FileEntryState) => (state.focused ? 'block' : 'none'),
     boxShadow: 'inset rgba(0, 0, 0, 1) 0 0 0 2px',
     position: 'absolute',
-    height: '100%',
-    width: '100%',
+    inset: 0,
     zIndex: 11,
   },
 }));

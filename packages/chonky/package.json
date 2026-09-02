@@ -1,6 +1,6 @@
 {
   "name": "@samuelncui/chonky",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A File Browser component for React",
   "license": "MIT",
   "main": "dist/chonky.cjs",

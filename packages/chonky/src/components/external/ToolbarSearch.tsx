@@ -18,6 +18,7 @@ import { useDebounce } from '../../util/hooks-helpers';
 import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { ChonkyIconContext } from '../../util/icon-helper';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
+import { ToolbarButton } from './ToolbarButton';
 import { ChonkyDispatch } from '../../types/redux.types';
 
 export interface ToolbarSearchProps {}
@@ -26,7 +27,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
   const intl = useIntl();
   const searchPlaceholderString = intl.formatMessage({
     id: getI18nId(I18nNamespace.Toolbar, 'searchPlaceholder'),
-    defaultMessage: 'Search',
+    defaultMessage: 'Filter',
   });
 
   const classes = useStyles();
@@ -40,17 +41,26 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
   const [localSearchString, setLocalSearchString] = useState(reduxSearchString);
   const [debouncedLocalSearchString] = useDebounce(localSearchString, 50);
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+  const [expanded, setExpanded] = useState(Boolean(reduxSearchString));
+  const focusWhenExpanded = useRef(false);
 
   useEffect(() => {
     dispatch(
       reduxActions.setFocusSearchInput(() => {
-        if (searchInputRef.current) searchInputRef.current.focus();
+        focusWhenExpanded.current = true;
+        setExpanded(true);
       }),
     );
     return () => {
       dispatch(reduxActions.setFocusSearchInput(null));
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!expanded || !focusWhenExpanded.current) return;
+    focusWhenExpanded.current = false;
+    searchInputRef.current?.focus();
+  }, [expanded]);
 
   useEffect(() => {
     setShowLoadingIndicator(false);
@@ -69,12 +79,24 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
       //       @see https://stackoverflow.com/a/37461974
       if (event.key === 'Escape') {
         setLocalSearchString('');
+        setExpanded(false);
         dispatch(reduxActions.setSearchString(''));
         if (searchInputRef.current) searchInputRef.current.blur();
       }
     },
     [dispatch],
   );
+
+  const expand = useCallback(() => {
+    focusWhenExpanded.current = true;
+    setExpanded(true);
+  }, []);
+
+  if (!expanded) {
+    return (
+      <ToolbarButton text="" tooltip={searchPlaceholderString} icon={ChonkyIconName.filter} iconOnly onClick={expand} />
+    );
+  }
 
   return (
     <TextField
@@ -84,6 +106,9 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
       value={localSearchString}
       placeholder={searchPlaceholderString}
       onChange={handleChange as any}
+      onBlur={() => {
+        if (!localSearchString) setExpanded(false);
+      }}
       inputRef={searchInputRef}
       slotProps={{
         input: {
@@ -91,7 +116,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
           startAdornment: (
             <InputAdornment className={classes.searchIcon} position="start">
               <ChonkyIcon
-                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.search}
+                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.filter}
                 spin={showLoadingIndicator}
               />
             </InputAdornment>
@@ -107,7 +132,11 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
 const useStyles = makeGlobalChonkyStyles((theme) => ({
   searchFieldContainer: {
     height: theme.toolbar.size,
+    justifyContent: 'center',
     width: 150,
+    '@container (max-width: 560px)': {
+      width: 112,
+    },
   },
   searchIcon: {
     fontSize: '0.9em',
@@ -121,7 +150,6 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     borderRadius: theme.toolbar.buttonRadius,
     height: theme.toolbar.size - 4,
     paddingLeft: important(8),
-    marginTop: 2,
   },
   searchFieldInputInner: {
     lineHeight: important(`${theme.toolbar.size - 4}px`),
