@@ -5,9 +5,10 @@
  */
 
 import React, { CSSProperties, UIEvent, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useChonkySelector } from '../../redux/store';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { VirtuosoGrid, VirtuosoGridHandle } from 'react-virtuoso';
 
+import { reduxActions } from '../../redux/reducers';
 import { selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
 import { FileViewConfigGrid } from '../../types/file-view.types';
 import { makeGlobalChonkyStyles, useIsMobileBreakpoint } from '../../util/styles';
@@ -25,17 +26,18 @@ interface StyleState {
 }
 
 export const GridContainer: React.FC<FileListGridProps> = React.memo(({ onScroll }) => {
+  const dispatch = useChonkyDispatch();
   const viewConfig = useChonkySelector(selectFileViewConfig) as FileViewConfigGrid;
   const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
   const revealFileRequest = useChonkySelector(selectRevealFileRequest);
   const virtuosoRef = useRef<VirtuosoGridHandle>(null);
 
   useEffect(() => {
-    if (!revealFileRequest) return;
+    if (!revealFileRequest || revealFileRequest.handled) return;
     const index = displayFileIds.indexOf(revealFileRequest.fileId);
-    if (index < 0) return;
-    virtuosoRef.current?.scrollToIndex({ index, align: 'center' });
-  }, [displayFileIds, revealFileRequest]);
+    if (index >= 0) virtuosoRef.current?.scrollToIndex({ index, align: 'center' });
+    dispatch(reduxActions.acknowledgeRevealFile(revealFileRequest.revision));
+  }, [dispatch, displayFileIds, revealFileRequest]);
 
   const getFileId = useCallback((index: number) => displayFileIds[index] ?? null, [displayFileIds]);
   const getItemKey = useCallback((index: number) => getFileId(index) ?? `loading-file-${index}`, [getFileId]);

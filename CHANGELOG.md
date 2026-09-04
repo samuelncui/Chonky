@@ -2,11 +2,13 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
-## 0.3.2 - 2026-09-01
+## 0.3.2 - 2026-09-04
 
-- Add `FileBrowserHandle.revealFile(id)` to select a displayed file and scroll
-  it into view in list or grid mode.
-- Add a single-row toolbar layout with stable filter, summary, extension, and action regions.
+- Add `FileBrowserHandle.revealFile(id)` to select a displayed, selectable file
+  and scroll it into view in list or grid mode. Selection and the viewport stay
+  unchanged when selection is disabled or the target is not displayed or selectable.
+- Add `FileToolbar layout="inline"` for a single-row toolbar with stable filter,
+  summary, extension, and action regions. The wrapping `responsive` layout remains the default.
 
 ## 0.3.1 - 2026-08-21
 

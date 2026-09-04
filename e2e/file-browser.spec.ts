@@ -50,6 +50,18 @@ test('supports toolbar options and context actions', async ({ page }) => {
   await expect(page.getByTestId('opened-file')).toHaveText('selection');
 });
 
+test('compacts inline toolbar actions in narrow containers', async ({ page }) => {
+  await page.setViewportSize({ width: 520, height: 800 });
+  await page.goto('/?toolbar=inline');
+
+  const iconButton = page.getByRole('button', { name: 'Icon action' });
+  await expect(iconButton.locator('[data-chonky-toolbar-label]')).toBeHidden();
+  await expect(iconButton.locator('[data-chonky-toolbar-icon-with-text]')).toHaveCSS('margin-right', '0px');
+
+  const textButton = page.getByRole('button', { name: 'Text-only action' });
+  await expect(textButton.locator('[data-chonky-toolbar-label]')).toBeVisible();
+});
+
 test('exposes the imperative selection API', async ({ page }) => {
   await page.getByRole('button', { name: 'Select alpha through ref' }).click();
   await page.getByRole('button', { name: 'Read selection through ref' }).click();

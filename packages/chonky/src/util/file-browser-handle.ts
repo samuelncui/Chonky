@@ -7,6 +7,7 @@ import { thunkRequestFileAction } from '../redux/thunks/dispatchers.thunks';
 import { FileAction } from '../types/action.types';
 import { FileBrowserHandle } from '../types/file-browser.types';
 import { ChonkyDispatch } from '../types/redux.types';
+import { FileHelper } from './file-helper';
 
 export const useFileBrowserHandle = (ref: React.Ref<FileBrowserHandle>) => {
   const store = useChonkyReduxStore();
@@ -25,8 +26,10 @@ export const useFileBrowserHandle = (ref: React.Ref<FileBrowserHandle>) => {
         dispatch(reduxActions.selectFiles({ fileIds, reset }));
       },
       revealFile(id): void {
-        const displayFileIds = selectors.getDisplayFileIds(store.getState());
-        if (!displayFileIds.includes(id)) return;
+        const state = store.getState();
+        if (!selectors.getDisplayFileIds(state).includes(id)) return;
+        if (state.disableSelection) return;
+        if (!FileHelper.isSelectable(state.fileMap[id])) return;
 
         dispatch(reduxActions.selectFiles({ fileIds: [id], reset: true }));
         dispatch(reduxActions.revealFile(id));
