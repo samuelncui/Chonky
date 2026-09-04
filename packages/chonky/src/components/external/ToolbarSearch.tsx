@@ -40,13 +40,17 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
 
   const [localSearchString, setLocalSearchString] = useState(reduxSearchString);
   const [debouncedLocalSearchString] = useDebounce(localSearchString, 50);
-  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const [expanded, setExpanded] = useState(Boolean(reduxSearchString));
   const focusWhenExpanded = useRef(false);
+  const showLoadingIndicator = localSearchString !== debouncedLocalSearchString;
 
   useEffect(() => {
     dispatch(
       reduxActions.setFocusSearchInput(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+          return;
+        }
         focusWhenExpanded.current = true;
         setExpanded(true);
       }),
@@ -63,12 +67,10 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
   }, [expanded]);
 
   useEffect(() => {
-    setShowLoadingIndicator(false);
     dispatch(reduxActions.setSearchString(debouncedLocalSearchString));
   }, [debouncedLocalSearchString, dispatch]);
 
   const handleChange = useCallback((event: React.FormEvent<HTMLInputElement>) => {
-    setShowLoadingIndicator(true);
     setLocalSearchString(event.currentTarget.value);
   }, []);
   const handleKeyUp = useCallback(
@@ -77,12 +79,12 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
       // Note: We use KeyUp instead of KeyPress because some browser plugins can
       //       intercept KeyPress events with Escape key.
       //       @see https://stackoverflow.com/a/37461974
-      if (event.key === 'Escape') {
-        setLocalSearchString('');
-        setExpanded(false);
-        dispatch(reduxActions.setSearchString(''));
-        if (searchInputRef.current) searchInputRef.current.blur();
-      }
+      if (event.key !== 'Escape') return;
+
+      setLocalSearchString('');
+      setExpanded(false);
+      dispatch(reduxActions.setSearchString(''));
+      searchInputRef.current?.blur();
     },
     [dispatch],
   );
@@ -94,7 +96,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
 
   if (!expanded) {
     return (
-      <ToolbarButton text="" tooltip={searchPlaceholderString} icon={ChonkyIconName.filter} iconOnly onClick={expand} />
+      <ToolbarButton text="" tooltip={searchPlaceholderString} icon={ChonkyIconName.search} iconOnly onClick={expand} />
     );
   }
 
@@ -116,7 +118,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
           startAdornment: (
             <InputAdornment className={classes.searchIcon} position="start">
               <ChonkyIcon
-                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.filter}
+                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.search}
                 spin={showLoadingIndicator}
               />
             </InputAdornment>

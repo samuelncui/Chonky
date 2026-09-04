@@ -34,12 +34,15 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo((props) =>
   const classes = useStyles();
   const ChonkyIcon = useContext(ChonkyIconContext);
 
-  const iconComponent =
-    icon || iconOnly ? (
-      <div className={iconOnly ? '' : classes.iconWithText}>
-        <ChonkyIcon className={classes.icon} icon={icon ? icon : ChonkyIconName.fallbackIcon} fixedWidth={true} />
-      </div>
-    ) : null;
+  const hasIcon = Boolean(icon || iconOnly);
+  const iconComponent = hasIcon ? (
+    <div
+      className={iconOnly ? '' : classes.iconWithText}
+      data-chonky-toolbar-icon-with-text={iconOnly ? undefined : true}
+    >
+      <ChonkyIcon className={classes.icon} icon={icon ? icon : ChonkyIconName.fallbackIcon} fixedWidth={true} />
+    </div>
+  ) : null;
 
   const className = c({
     [externalClassName ?? '']: true,
@@ -56,7 +59,7 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo((props) =>
       disabled={disabled || !onClick}
     >
       {iconComponent}
-      {text && !iconOnly && <span>{text}</span>}
+      {text && !iconOnly && <span data-chonky-toolbar-label>{text}</span>}
       {dropdown && text && !iconOnly && (
         <div className={classes.iconDropdown}>
           <ChonkyIcon icon={ChonkyIconName.dropdown} fixedWidth={true} />

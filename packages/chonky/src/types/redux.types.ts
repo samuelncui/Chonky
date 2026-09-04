@@ -41,7 +41,7 @@ export type RootState = {
   // Selection
   selectionMap: FileSelection;
   disableSelection: boolean;
-  revealFileRequest: Nullable<{ fileId: string; revision: number }>;
+  revealFileRequest: Nullable<{ fileId: string; revision: number; handled: boolean }>;
 
   // File views
   fileViewConfig: FileViewConfig;

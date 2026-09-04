@@ -18,7 +18,6 @@ export enum ChonkyIconName {
   paste = 'paste',
   share = 'share',
   search = 'search',
-  filter = 'filter',
   selectAllFiles = 'selectAllFiles',
   clearSelection = 'clearSelection',
 

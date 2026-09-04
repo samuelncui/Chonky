@@ -33,8 +33,9 @@ export interface FileBrowserHandle {
   setFileSelection(selection: Set<string>, reset?: boolean): void;
 
   /**
-   * Selects a visible file and scrolls it into view.
-   * IDs of files that are not present in the displayed file list are ignored.
+   * Selects a displayed, selectable file and scrolls it into view.
+   * If selection is disabled, or the file is not displayed or selectable, the
+   * current selection and viewport remain unchanged.
    */
   revealFile(id: string): void;
 

@@ -92,7 +92,11 @@ const reducers = {
   },
   revealFile(state: RootState, action: PayloadAction<string>) {
     const revision = (state.revealFileRequest?.revision ?? 0) + 1;
-    state.revealFileRequest = { fileId: action.payload, revision };
+    state.revealFileRequest = { fileId: action.payload, revision, handled: false };
+  },
+  acknowledgeRevealFile(state: RootState, action: PayloadAction<number>) {
+    if (!state.revealFileRequest || state.revealFileRequest.revision !== action.payload) return;
+    state.revealFileRequest.handled = true;
   },
   setFileViewConfig(state: RootState, action: PayloadAction<FileViewConfig>) {
     state.fileViewConfig = action.payload;

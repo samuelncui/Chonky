@@ -10,11 +10,17 @@ import { ToolbarInfo } from './ToolbarInfo';
 import { ToolbarSearch } from './ToolbarSearch';
 
 export interface FileToolbarProps {
+  /**
+   * Controls how the filter, summary, children, and action regions are laid out.
+   * `responsive` allows the toolbar sides to wrap and is the default. `inline`
+   * keeps all four regions on one row and compacts icon buttons in narrow containers.
+   */
   layout?: 'responsive' | 'inline';
 }
 
 export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> = React.memo((props) => {
   const { children, layout = 'responsive' } = props;
+  const inline = layout === 'inline';
   const classes = useStyles();
   const toolbarItems = useChonkySelector(selectToolbarItems);
 
@@ -38,17 +44,15 @@ export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> 
   const hideToolbarInfo = useChonkySelector(selectHideToolbarInfo);
   return (
     <div className={classes.toolbarWrapper}>
-      <div className={c(classes.toolbarContainer, layout === 'inline' && classes.toolbarContainerInline)}>
-        <div className={c(classes.toolbarLeft, layout === 'inline' && classes.toolbarLeftInline)}>
+      <div className={c(classes.toolbarContainer, inline && classes.toolbarContainerInline)}>
+        <div className={c(classes.toolbarLeft, inline && classes.toolbarLeftInline)}>
           <div className={classes.toolbarSearch}>
             <ToolbarSearch />
           </div>
           <div className={classes.toolbarSummary}>{!hideToolbarInfo && <ToolbarInfo />}</div>
           <div className={classes.toolbarExtras}>{children}</div>
         </div>
-        <div className={c(classes.toolbarRight, layout === 'inline' && classes.toolbarRightInline)}>
-          {toolbarItemComponents}
-        </div>
+        <div className={c(classes.toolbarRight, inline && classes.toolbarRightInline)}>{toolbarItemComponents}</div>
       </div>
     </div>
   );
@@ -70,7 +74,6 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
   toolbarContainerInline: {
     gridTemplateColumns: 'max-content minmax(0, 1fr) max-content max-content',
     paddingBottom: theme.margins.rootLayoutMargin,
-    flexWrap: 'nowrap',
     display: 'grid',
   },
   toolbarLeft: {
@@ -82,7 +85,6 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     display: 'grid',
   },
   toolbarLeftInline: {
-    paddingBottom: 0,
     display: 'contents',
   },
   toolbarSearch: {
@@ -99,9 +101,6 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
     alignItems: 'center',
     display: 'flex',
   },
-  toolbarLeftFiller: {
-    flexGrow: 10000,
-  },
   toolbarRight: {
     paddingBottom: theme.margins.rootLayoutMargin,
     alignItems: 'center',
@@ -115,15 +114,12 @@ const useStyles = makeGlobalChonkyStyles((theme) => ({
   toolbarRightInline: {
     paddingBottom: 0,
     flexWrap: 'nowrap',
-    justifyContent: 'flex-end',
     '@container (max-width: 560px)': {
-      '& > button': {
-        minWidth: theme.toolbar.size,
-        paddingRight: theme.toolbar.buttonPadding,
-        paddingLeft: theme.toolbar.buttonPadding,
-      },
-      '& > button > span': {
+      '& > button > [data-chonky-toolbar-icon-with-text] + [data-chonky-toolbar-label]': {
         display: 'none',
+      },
+      '& > button > [data-chonky-toolbar-icon-with-text]': {
+        marginRight: 0,
       },
     },
   },

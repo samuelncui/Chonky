@@ -16,14 +16,6 @@ import { important, makeGlobalChonkyStyles } from '../../util/styles';
 
 export interface ToolbarInfoProps {}
 
-const selectedFileCountMessage = {
-  id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),
-  defaultMessage: `{fileCount, plural,
-                =0 {}
-                other {# selected}
-            }`,
-};
-
 export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
   const classes = useStyles();
 
@@ -43,7 +35,16 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
     },
     { fileCount },
   );
-  const selectedString = intl.formatMessage(selectedFileCountMessage, { fileCount: selectionSize });
+  const selectedString = intl.formatMessage(
+    {
+      id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),
+      defaultMessage: `{fileCount, plural,
+                =0 {}
+                other {# selected}
+            }`,
+    },
+    { fileCount: selectionSize },
+  );
   const hiddenString = intl.formatMessage(
     {
       id: getI18nId(I18nNamespace.Toolbar, 'hiddenFileCount'),

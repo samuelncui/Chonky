@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 
 import {
   ChonkyActions,
+  ChonkyIconName,
+  defineFileAction,
   FileBrowser,
   FileContextMenu,
   FileList,
@@ -21,6 +23,19 @@ const sampleFiles: FileData[] = [
   { id: 'bravo', name: 'bravo.mp4', size: 2_000_000, modDate: '2026-01-03' },
   { id: 'secret', name: '.secret', size: 32, isHidden: true, modDate: '2026-01-01' },
 ];
+
+const inlineIconAction = defineFileAction({
+  id: 'inline_icon_action',
+  button: { name: 'Icon action', toolbar: true, icon: ChonkyIconName.upload },
+} as const);
+
+const inlineTextAction = defineFileAction({
+  id: 'inline_text_action',
+  button: { name: 'Text-only action', toolbar: true },
+} as const);
+
+const inlineToolbar = new URLSearchParams(window.location.search).get('toolbar') === 'inline';
+const inlineToolbarActions = [inlineIconAction, inlineTextAction];
 
 const createLargeFileSet = (): FileData[] =>
   Array.from({ length: 5_000 }, (_, index) => ({
@@ -102,10 +117,11 @@ const App = () => {
             { id: 'current', name: 'Example', isDir: true },
           ]}
           files={files}
+          fileActions={inlineToolbar ? inlineToolbarActions : undefined}
           onFileAction={handleFileAction}
         >
           <FileNavbar />
-          <FileToolbar />
+          <FileToolbar layout={inlineToolbar ? 'inline' : 'responsive'} />
           <FileList />
           <FileContextMenu />
         </FileBrowser>

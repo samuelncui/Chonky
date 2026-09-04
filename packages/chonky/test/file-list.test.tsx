@@ -50,6 +50,18 @@ describe('file list', () => {
     expect(selectHiddenFileIdMap(state)).toEqual({ 'file-b': true });
   });
 
+  it('acknowledges only the current reveal request', () => {
+    let state = rootReducer(undefined, reduxActions.revealFile('file-a'));
+    const firstRevision = state.revealFileRequest?.revision ?? 0;
+    state = rootReducer(state, reduxActions.revealFile('file-b'));
+
+    state = rootReducer(state, reduxActions.acknowledgeRevealFile(firstRevision));
+    expect(state.revealFileRequest).toMatchObject({ fileId: 'file-b', handled: false });
+
+    state = rootReducer(state, reduxActions.acknowledgeRevealFile(state.revealFileRequest?.revision ?? 0));
+    expect(state.revealFileRequest).toMatchObject({ fileId: 'file-b', handled: true });
+  });
+
   it('applies the configured list row height', async () => {
     render(
       <FileBrowser files={[files[0]]} disableDragAndDrop>
@@ -89,7 +101,7 @@ describe('file list', () => {
     ['grid', 'enable_grid_view', 'virtual-grid'],
   ])('selects and scrolls a revealed file into %s view', async (_view, defaultFileViewActionId, testId) => {
     const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
-    render(
+    const { rerender } = render(
       <FileBrowser ref={ref} files={files} defaultFileViewActionId={defaultFileViewActionId} disableDragAndDrop>
         <FileList />
       </FileBrowser>,
@@ -100,11 +112,27 @@ describe('file list', () => {
 
     await waitFor(() => expect(ref.current?.getFileSelection()).toEqual(new Set(['file-b'])));
     expect(scrollToIndex).toHaveBeenCalledWith({ index: 1, align: 'center' });
+
+    rerender(
+      <FileBrowser
+        ref={ref}
+        files={[...files, { id: 'file-c', name: 'File C' }]}
+        defaultFileViewActionId={defaultFileViewActionId}
+        disableDragAndDrop
+      >
+        <FileList />
+      </FileBrowser>,
+    );
+    expect(scrollToIndex).toHaveBeenCalledTimes(1);
+
+    ref.current?.revealFile('file-b');
+    await waitFor(() => expect(scrollToIndex).toHaveBeenCalledTimes(2));
+    expect(scrollToIndex).toHaveBeenLastCalledWith({ index: 1, align: 'center' });
   });
 
   it('ignores a missing reveal target without changing selection', async () => {
     const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
-    render(
+    const { rerender } = render(
       <FileBrowser
         ref={ref}
         files={files}
@@ -124,6 +152,67 @@ describe('file list', () => {
     ref.current?.revealFile('missing');
 
     expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+
+    rerender(
+      <FileBrowser
+        ref={ref}
+        files={[...files, { id: 'missing', name: 'Previously missing file' }]}
+        instanceId="missing-reveal"
+        defaultFileViewActionId="enable_grid_view"
+        disableDragAndDrop
+      >
+        <FileList />
+      </FileBrowser>,
+    );
+    expect(scrollToIndex).not.toHaveBeenCalled();
+  });
+
+  it('ignores an unselectable reveal target without changing selection', async () => {
+    const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
+    render(
+      <FileBrowser
+        ref={ref}
+        files={[files[0], { ...files[1], selectable: false }]}
+        instanceId="unselectable-reveal"
+        defaultFileViewActionId="enable_grid_view"
+        disableDragAndDrop
+      >
+        <FileList />
+      </FileBrowser>,
+    );
+
+    await screen.findByTestId('virtual-grid');
+    ref.current?.setFileSelection(new Set(['file-a']));
+    await waitFor(() => expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a'])));
+
+    scrollToIndex.mockClear();
+    ref.current?.revealFile('file-b');
+
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+  });
+
+  it('ignores a reveal request when selection is disabled', async () => {
+    const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
+    render(
+      <FileBrowser
+        ref={ref}
+        files={files}
+        instanceId="disabled-selection-reveal"
+        defaultFileViewActionId="enable_grid_view"
+        disableSelection
+        disableDragAndDrop
+      >
+        <FileList />
+      </FileBrowser>,
+    );
+
+    await screen.findByTestId('virtual-grid');
+    scrollToIndex.mockClear();
+    ref.current?.revealFile('file-b');
+
+    expect(ref.current?.getFileSelection()).toEqual(new Set());
     expect(scrollToIndex).not.toHaveBeenCalled();
   });
 });

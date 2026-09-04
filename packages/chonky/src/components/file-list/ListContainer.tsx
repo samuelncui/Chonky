@@ -5,9 +5,10 @@
  */
 
 import React, { CSSProperties, UIEvent, useCallback, useEffect, useRef } from 'react';
-import { useChonkySelector } from '../../redux/store';
+import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
+import { reduxActions } from '../../redux/reducers';
 import { selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
 import { FileViewMode } from '../../types/file-view.types';
 import { makeGlobalChonkyStyles } from '../../util/styles';
@@ -19,17 +20,18 @@ export interface FileListListProps {
 
 export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll }) => {
   const classes = useStyles();
+  const dispatch = useChonkyDispatch();
   const viewConfig = useChonkySelector(selectFileViewConfig);
   const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
   const revealFileRequest = useChonkySelector(selectRevealFileRequest);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   useEffect(() => {
-    if (!revealFileRequest) return;
+    if (!revealFileRequest || revealFileRequest.handled) return;
     const index = displayFileIds.indexOf(revealFileRequest.fileId);
-    if (index < 0) return;
-    virtuosoRef.current?.scrollToIndex({ index, align: 'center' });
-  }, [displayFileIds, revealFileRequest]);
+    if (index >= 0) virtuosoRef.current?.scrollToIndex({ index, align: 'center' });
+    dispatch(reduxActions.acknowledgeRevealFile(revealFileRequest.revision));
+  }, [dispatch, displayFileIds, revealFileRequest]);
 
   const getFileId = useCallback((index: number) => displayFileIds[index] ?? null, [displayFileIds]);
   const getItemKey = useCallback((index: number) => getFileId(index) ?? `loading-file-${index}`, [getFileId]);

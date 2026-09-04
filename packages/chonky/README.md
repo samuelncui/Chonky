@@ -30,12 +30,20 @@ export function FileBrowser() {
 }
 ```
 
+`FileToolbar` uses the wrapping `responsive` layout by default. When composing
+the browser manually, use its `inline` layout to keep the filter, summary,
+children, and action regions on one row:
+
+```tsx
+<FileToolbar layout="inline" />
+```
+
 Use a browser ref when an external result needs to be selected and scrolled
 into view:
 
 ```tsx
 import { useRef } from 'react';
-import { FileBrowserHandle, FullFileBrowser } from '@samuelncui/chonky';
+import { FullFileBrowser, type FileBrowserHandle } from '@samuelncui/chonky';
 
 export function RevealableBrowser() {
   const browser = useRef<FileBrowserHandle>(null);
@@ -47,6 +55,10 @@ export function RevealableBrowser() {
   );
 }
 ```
+
+`revealFile` only acts when selection is enabled and the target file is both
+displayed and selectable. Otherwise, the current selection and viewport remain
+unchanged.
 
 See the [repository](https://github.com/samuelncui/Chonky) for the runnable
 example and development instructions.
