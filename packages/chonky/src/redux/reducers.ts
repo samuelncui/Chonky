@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GenericFileActionHandler } from '../types/action-handler.types';
 import { FileActionMenuItem } from '../types/action-menus.types';
 import { FileAction, FileActionMap } from '../types/action.types';
+import { FileGrouping } from '../types/grouping.types';
 import { ContextMenuConfig } from '../types/context-menu.types';
 import { FileViewConfig } from '../types/file-view.types';
 import { FileArray, FileMap } from '../types/file.types';
@@ -16,7 +17,57 @@ import { FileHelper } from '../util/file-helper';
 import { sanitizeInputArray } from './files-transforms';
 import { initialRootState } from './state';
 
+const activateGroup = (state: RootState, id: string | undefined) => {
+  if (state.activeGroupId === id) return;
+  state.activeGroupId = id;
+  state.selectionMap = {};
+  state.lastClick = null;
+  state.contextMenuConfig = null;
+};
+
+const activateFileGroup = (state: RootState, fileId: string) => {
+  if (!state.grouping) return;
+  activateGroup(state, state.fileGroupMap[fileId]);
+};
+
 const reducers = {
+  setGrouping(state: RootState, action: PayloadAction<FileGrouping | null>) {
+    const previous = state.grouping;
+    state.grouping = action.payload;
+    state.fileGroupMap = {};
+    for (const group of action.payload?.groups ?? []) {
+      for (const id of group.fileIds) {
+        if (!(id in state.fileGroupMap)) state.fileGroupMap[id] = group.id;
+      }
+    }
+    if (!previous || previous.activeGroupId !== action.payload?.activeGroupId) {
+      activateGroup(state, action.payload?.activeGroupId);
+    }
+    if (!action.payload?.groups.some((group) => group.id === state.activeGroupId)) activateGroup(state, undefined);
+    if (previous?.mode !== action.payload?.mode) state.collapsedGroupIds = {};
+    for (const id of Object.keys(state.selectionMap)) {
+      if (state.grouping && state.fileGroupMap[id] !== state.activeGroupId) delete state.selectionMap[id];
+    }
+  },
+  activateGroup(state: RootState, action: PayloadAction<string | undefined>) {
+    if (!state.grouping) return;
+    activateGroup(state, action.payload);
+  },
+  activateFileGroup(state: RootState, action: PayloadAction<string>) {
+    activateFileGroup(state, action.payload);
+  },
+  toggleGroup(state: RootState, action: PayloadAction<string>) {
+    if (!state.grouping) return;
+    const id = action.payload;
+    if (state.grouping.mode === 'single') {
+      activateGroup(state, state.activeGroupId === id ? undefined : id);
+      return;
+    }
+    state.collapsedGroupIds[id] = !state.collapsedGroupIds[id];
+    activateGroup(state, state.collapsedGroupIds[id] ? undefined : id);
+    state.selectionMap = {};
+    state.lastClick = null;
+  },
   setExternalFileActionHandler(state: RootState, action: PayloadAction<Nilable<GenericFileActionHandler<FileAction>>>) {
     state.externalFileActionHandler = action.payload ?? null;
   },
@@ -62,19 +113,28 @@ const reducers = {
     state.searchString = action.payload;
   },
   selectAllFiles(state: RootState) {
+    if (state.disableSelection) return;
     state.fileIds
+      .filter(
+        (id) => !state.grouping || (id && !!state.activeGroupId && state.fileGroupMap[id] === state.activeGroupId),
+      )
       .filter((id) => id && FileHelper.isSelectable(state.fileMap[id]))
       .map((id) => (id ? (state.selectionMap[id] = true) : null));
   },
   selectFiles(state: RootState, action: PayloadAction<{ fileIds: string[]; reset: boolean }>) {
     if (state.disableSelection) return;
+    const firstId = action.payload.fileIds.find((id) => FileHelper.isSelectable(state.fileMap[id]));
+    if (firstId) activateFileGroup(state, firstId);
     if (action.payload.reset) state.selectionMap = {};
     action.payload.fileIds
+      .filter((id) => !state.grouping || (!!state.activeGroupId && state.fileGroupMap[id] === state.activeGroupId))
       .filter((id) => id && FileHelper.isSelectable(state.fileMap[id]))
       .map((id) => (state.selectionMap[id] = true));
   },
   toggleSelection(state: RootState, action: PayloadAction<{ fileId: string; exclusive: boolean }>) {
     if (state.disableSelection) return;
+    activateFileGroup(state, action.payload.fileId);
+    if (state.grouping && !state.activeGroupId) return;
     const oldValue = !!state.selectionMap[action.payload.fileId];
     if (action.payload.exclusive) state.selectionMap = {};
     if (oldValue) delete state.selectionMap[action.payload.fileId];

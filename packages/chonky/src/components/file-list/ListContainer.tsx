@@ -19,7 +19,7 @@ export interface FileListListProps {
 }
 
 export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll }) => {
-  const classes = useStyles();
+  const classes = useListContainerStyles();
   const dispatch = useChonkyDispatch();
   const viewConfig = useChonkySelector(selectFileViewConfig);
   const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
@@ -68,7 +68,7 @@ const containerStyle: CSSProperties = {
   height: '100%',
 };
 
-const useStyles = makeGlobalChonkyStyles((theme) => ({
+export const useListContainerStyles = makeGlobalChonkyStyles((theme) => ({
   listContainer: {
     width: `calc(100% + ${theme.margins.rootLayoutMargin * 2}px)`,
     marginLeft: -theme.margins.rootLayoutMargin,

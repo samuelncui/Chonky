@@ -148,26 +148,34 @@ export const thunkActivateSortAction =
   };
 
 export const thunkApplySelectionTransform =
-  (action: FileAction): ChonkyThunk =>
+  (action: FileAction, groupId?: string): ChonkyThunk =>
   (dispatch, getState) => {
     const selectionTransform = action.selectionTransform;
     if (!selectionTransform) return;
 
     const state = getState();
-    const prevSelection = new Set<string>(Object.keys(selectSelectionMap(state)));
+    const targetGroupId = groupId ?? state.activeGroupId;
+    const inTargetGroup = (id: string) =>
+      !state.grouping || (!!targetGroupId && state.fileGroupMap[id] === targetGroupId);
+    const prevSelection = new Set<string>(Object.keys(selectSelectionMap(state)).filter(inTargetGroup));
     const hiddenFileIds = new Set<string>(Object.keys(selectHiddenFileIdMap(state)));
 
     const newSelection = selectionTransform({
       prevSelection,
-      fileIds: selectCleanFileIds(state),
+      fileIds: selectCleanFileIds(state).filter(inTargetGroup),
       fileMap: selectFileMap(state),
       hiddenFileIds,
     });
     if (!newSelection) return;
 
     if (newSelection.size === 0) {
-      dispatch(reduxActions.clearSelection());
+      if (!state.grouping || targetGroupId === state.activeGroupId) dispatch(reduxActions.clearSelection());
     } else {
-      dispatch(reduxActions.selectFiles({ fileIds: Array.from(newSelection), reset: true }));
+      dispatch(
+        reduxActions.selectFiles({
+          fileIds: Array.from(newSelection).filter(inTargetGroup),
+          reset: true,
+        }),
+      );
     }
   };

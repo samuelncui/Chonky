@@ -4,6 +4,9 @@ import { Nilable, Nullable } from 'tsdef';
 
 import { createSelector } from '@reduxjs/toolkit';
 
+import { ChonkyActions } from '../action-definitions';
+import { FileActionState } from '../types/action-handler.types';
+import { FileAction } from '../types/action.types';
 import { OptionIds } from '../action-definitions/option-ids';
 import { FileArray, FileData, FileFilter } from '../types/file.types';
 import { RootState } from '../types/redux.types';
@@ -65,7 +68,12 @@ export const selectRevealFileRequest = (state: RootState) => state.revealFileReq
 export const selectForceEnableOpenParent = (state: RootState) => state.forceEnableOpenParent;
 export const selectHideToolbarInfo = (state: RootState) => state.hideToolbarInfo;
 
-export const selectFileViewConfig = (state: RootState) => state.fileViewConfig;
+export const selectGrouping = (state: RootState) => state.grouping;
+export const selectActiveGroupId = (state: RootState) => state.activeGroupId;
+const selectCollapsedGroupIds = (state: RootState) => state.collapsedGroupIds;
+const selectFileGroupMap = (state: RootState) => state.fileGroupMap;
+export const selectFileViewConfig = (state: RootState) =>
+  state.grouping ? ChonkyActions.EnableListView.fileViewConfig : state.fileViewConfig;
 
 export const selectSortActionId = (state: RootState) => state.sortActionId;
 export const selectSortOrder = (state: RootState) => state.sortOrder;
@@ -190,11 +198,72 @@ export const selectHiddenFileCount = createSelector(
   [selectHiddenFileIdMap],
   (hiddenFileIdMap) => Object.keys(hiddenFileIdMap).length,
 );
-const getDisplayFileIds = createSelector(
+const getVisibleFileIds = createSelector(
   [getSortedFileIds, selectHiddenFileIdMap],
   /** Returns files that will actually be shown to the user. */
   (sortedFileIds, hiddenFileIdMap) => sortedFileIds.filter((id) => !id || !hiddenFileIdMap[id]),
 );
+/** Headers retain caller order; members retain the ordinary sorted/filtered order. */
+export const selectDisplayGroups = createSelector(
+  [selectGrouping, getVisibleFileIds, selectFileGroupMap, selectFileMap],
+  (grouping, visibleIds, groupMap, fileMap) => {
+    if (!grouping) return [];
+    const members = new Map<string, string[]>();
+    for (const id of visibleIds) {
+      if (!id || !groupMap[id]) continue;
+      const groupId = groupMap[id];
+      const ids = members.get(groupId) ?? [];
+      ids.push(id);
+      members.set(groupId, ids);
+    }
+    return grouping.groups.flatMap((group) => {
+      const fileIds = members.get(group.id);
+      const totalCount = group.fileIds.filter((id) => groupMap[id] === group.id && !!fileMap[id]).length;
+      return fileIds?.length ? [{ ...group, fileIds, totalCount }] : [];
+    });
+  },
+);
+export const selectExpandedGroups = createSelector(
+  [selectDisplayGroups, selectGrouping, selectActiveGroupId, selectCollapsedGroupIds],
+  (groups, grouping, activeId, collapsed) =>
+    groups.map((group) => ({
+      ...group,
+      expanded: grouping?.mode === 'single' ? group.id === activeId : !collapsed[group.id],
+    })),
+);
+const getDisplayFileIds = createSelector(
+  [getVisibleFileIds, selectGrouping, selectExpandedGroups],
+  (ids, grouping, groups) => (grouping ? groups.flatMap((group) => (group.expanded ? group.fileIds : [])) : ids),
+);
+
+/** The same action context is used by buttons, shortcuts and imperative dispatch. */
+export const getFileActionState = (
+  state: RootState,
+  action: FileAction,
+  groupId = state.activeGroupId,
+): FileActionState<{}> => {
+  const group = state.grouping?.groups.find((candidate) => candidate.id === groupId);
+  const selectedFiles = selectSelectedFiles(state).filter(
+    (file) => file && (!state.grouping || (!!group && state.fileGroupMap[file.id] === group.id)),
+  );
+  const trigger = selectContextMenuTriggerFile(state);
+  return {
+    instanceId: state.instanceId,
+    selectedFiles,
+    selectedFilesForAction: action.fileFilter ? selectedFiles.filter(action.fileFilter) : selectedFiles,
+    contextMenuTriggerFile:
+      trigger && (!state.grouping || state.fileGroupMap[trigger.id] === group?.id) ? trigger : null,
+    ...(group
+      ? {
+          group: {
+            id: group.id,
+            fileIds: group.fileIds.filter((id) => !!state.fileMap[id] && state.fileGroupMap[id] === group.id),
+          },
+        }
+      : {}),
+  };
+};
+
 const getLastClickIndex = createSelector(
   [_getLastClick, getDisplayFileIds],
   /** Returns the last click index after ensuring it is actually still valid. */

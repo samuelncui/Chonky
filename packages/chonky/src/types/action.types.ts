@@ -76,7 +76,7 @@ export interface FileAction {
    *  - Default
    *  - Active
    */
-  customVisibility?: () => CustomVisibilityState;
+  customVisibility?: (state: FileActionState<{}>) => CustomVisibilityState;
   /**
    * Field used to infer the type of action payload. It is used solely for Typescript
    * type inference and action validation.

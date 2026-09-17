@@ -36,6 +36,7 @@ export const EssentialActions = {
       __payloadType: {} as MouseClickFilePayload,
     } as const,
     ({ payload, reduxDispatch, getReduxState }) => {
+      reduxDispatch(reduxActions.activateFileGroup(payload.file.id));
       if (payload.clickType === 'double') {
         if (FileHelper.isOpenable(payload.file)) {
           reduxDispatch(
@@ -135,6 +136,7 @@ export const EssentialActions = {
       __payloadType: {} as KeyboardClickFilePayload,
     } as const,
     ({ payload, reduxDispatch, getReduxState }) => {
+      reduxDispatch(reduxActions.activateFileGroup(payload.file.id));
       reduxDispatch(
         reduxActions.setLastClickIndex({
           index: payload.fileDisplayIndex,
@@ -283,6 +285,7 @@ export const EssentialActions = {
       //  component mounted" switch...
       const triggerFile = getFileData(getReduxState(), payload.triggerFileId);
       if (triggerFile) {
+        reduxDispatch(reduxActions.activateFileGroup(triggerFile.id));
         const fileSelected = getIsFileSelected(getReduxState(), triggerFile);
         if (!fileSelected) {
           // If file is selected, we leave the selection as is. If it is not

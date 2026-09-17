@@ -2,7 +2,14 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
-## Unreleased
+## 0.3.3 - 2026-09-17
+
+- Add optional `FileBrowser.grouping` with continuous/single-group virtual lists,
+  group-scoped selection and registered header actions. Existing list/grid modes
+  and the single-group `GroupedFileList` API remain available.
+- Supply group context to action handlers and selection-aware visibility callbacks;
+  recheck hidden/disabled actions at dispatch, including shortcuts and ref requests.
+- Add a resettable identical-files demo with keep/delete actions and large fixtures.
 
 - Add optional file status indicators and detail lines, with measured list-row heights.
 - Add controlled `GroupedFileList`, custom root breadcrumb content and explicit copy paths.

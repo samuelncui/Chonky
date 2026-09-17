@@ -5,6 +5,7 @@ import { DeepPartial } from 'tsdef';
 
 import { ChonkyActions } from '../action-definitions/index';
 import { GenericFileActionHandler } from './action-handler.types';
+import { FileGrouping } from './grouping.types';
 import { FileAction } from './action.types';
 import { FileArray } from './file.types';
 import { I18nConfig } from './i18n.types';
@@ -54,6 +55,9 @@ export type ChonkyActionUnion = (typeof ChonkyActions)[keyof typeof ChonkyAction
  * Props for the `FileBrowser` component that is exposed to library users.
  */
 export interface FileBrowserProps {
+  /** Optional grouping for FileList. Grouped rows always use the list layout. */
+  grouping?: FileGrouping;
+
   /** Optional bottom content inside the browser frame, outside the file-list scroll area. */
   footer?: ReactNode;
 
