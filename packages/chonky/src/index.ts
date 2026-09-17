@@ -5,6 +5,8 @@ export { FileBrowser } from './components/external/FileBrowser';
 export { FileNavbar } from './components/external/FileNavbar';
 export { FileToolbar } from './components/external/FileToolbar';
 export { FileList } from './components/file-list/FileList';
+export { GroupedFileList } from './components/file-list/GroupedFileList';
+export type { FileGroup, GroupedFileListProps } from './components/file-list/GroupedFileList';
 export { FileContextMenu } from './components/external/FileContextMenu';
 export { FullFileBrowser } from './components/external/FullFileBrowser';
 

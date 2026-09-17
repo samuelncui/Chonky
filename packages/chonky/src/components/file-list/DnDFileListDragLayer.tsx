@@ -8,6 +8,8 @@ import React from 'react';
 import { useDragLayer } from 'react-dnd';
 import { Nullable } from 'tsdef';
 
+import { selectInstanceId } from '../../redux/selectors';
+import { useChonkySelector } from '../../redux/store';
 import { ChonkyDndFileEntryItem, ChonkyDndFileEntryType } from '../../types/dnd.types';
 import { makeGlobalChonkyStyles } from '../../util/styles';
 
@@ -43,6 +45,7 @@ const getItemStyles = (
 
 export const DnDFileListDragLayer: React.FC<DnDFileListDragLayerProps> = () => {
   const classes = useStyles();
+  const instanceId = useChonkySelector(selectInstanceId);
 
   const { itemType, item, initialCursorOffset, initialFileOffset, currentFileOffset, isDragging } = useDragLayer(
     (monitor) => ({
@@ -54,7 +57,7 @@ export const DnDFileListDragLayer: React.FC<DnDFileListDragLayerProps> = () => {
       isDragging: monitor.isDragging(),
     }),
   );
-  if (!isDragging || itemType !== ChonkyDndFileEntryType || !item.payload) {
+  if (!isDragging || itemType !== ChonkyDndFileEntryType || item?.payload?.sourceInstanceId !== instanceId) {
     return null;
   }
 

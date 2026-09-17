@@ -4,12 +4,12 @@
  * @license MIT
  */
 
-import React, { CSSProperties, UIEvent, useCallback, useEffect, useRef } from 'react';
+import React, { CSSProperties, UIEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { reduxActions } from '../../redux/reducers';
-import { selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
+import { selectFileMap, selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
 import { FileViewMode } from '../../types/file-view.types';
 import { makeGlobalChonkyStyles } from '../../util/styles';
 import { SmartFileEntry } from './FileEntry';
@@ -23,6 +23,11 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
   const dispatch = useChonkyDispatch();
   const viewConfig = useChonkySelector(selectFileViewConfig);
   const displayFileIds = useChonkySelector(selectors.getDisplayFileIds);
+  const fileMap = useChonkySelector(selectFileMap);
+  const hasDetails = useMemo(
+    () => displayFileIds.some((id) => id && fileMap[id]?.details?.length),
+    [displayFileIds, fileMap],
+  );
   const revealFileRequest = useChonkySelector(selectRevealFileRequest);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
@@ -37,11 +42,11 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
   const getItemKey = useCallback((index: number) => getFileId(index) ?? `loading-file-${index}`, [getFileId]);
   const renderItem = useCallback(
     (index: number) => (
-      <div style={{ height: viewConfig.entryHeight }}>
+      <div style={hasDetails ? { minHeight: viewConfig.entryHeight } : { height: viewConfig.entryHeight }}>
         <SmartFileEntry fileId={getFileId(index)} displayIndex={index} fileViewMode={FileViewMode.List} />
       </div>
     ),
-    [getFileId, viewConfig.entryHeight],
+    [getFileId, hasDetails, viewConfig.entryHeight],
   );
 
   return (
@@ -50,7 +55,8 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
       className={classes.listContainer}
       style={containerStyle}
       totalCount={displayFileIds.length}
-      fixedItemHeight={viewConfig.entryHeight}
+      fixedItemHeight={hasDetails ? undefined : viewConfig.entryHeight}
+      defaultItemHeight={viewConfig.entryHeight}
       computeItemKey={getItemKey}
       itemContent={renderItem}
       onScroll={onScroll}

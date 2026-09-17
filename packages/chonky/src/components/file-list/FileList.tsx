@@ -1,4 +1,5 @@
-import React, { UIEvent, useContext, useMemo } from 'react';
+import React, { UIEvent, useCallback, useContext, useMemo } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useChonkySelector } from '../../redux/store';
 
 import { ChonkyActions } from '../../action-definitions/index';
@@ -14,6 +15,11 @@ import { ListContainer } from './ListContainer';
 
 export interface FileListProps {
   onScroll?: (e: UIEvent<HTMLDivElement>) => void;
+  /** Optional content for an empty list, such as a loading or directory-read error state. */
+  emptyPlaceholder?: React.ReactNode;
+  /** Panel state, separate from file rows. Refreshing/paging preserve the current list. */
+  loading?: 'initial' | 'refreshing' | 'more';
+  loadingLabel?: string;
 }
 
 interface StyleState {
@@ -27,24 +33,32 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
 
   const currentFolder = useChonkySelector(selectCurrentFolder);
   const { drop, dndCanDrop, dndIsOverCurrent } = useFileDrop({ file: currentFolder });
+  const dropRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      drop(element);
+    },
+    [drop],
+  );
   const styleState = useMemo<StyleState>(() => ({ dndCanDrop, dndIsOverCurrent }), [dndCanDrop, dndIsOverCurrent]);
 
   const localClasses = useLocalStyles(styleState);
   const classes = useStyles(viewConfig);
-  const { onScroll } = props;
+  const { onScroll, emptyPlaceholder, loading, loadingLabel = 'Loading files' } = props;
 
   const list = useMemo(() => {
-    if (displayFileIds.length === 0) return <FileListEmpty height={viewConfig.entryHeight} />;
+    if (loading === 'initial') return null;
+    if (displayFileIds.length === 0) return emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />;
     if (viewConfig.mode === FileViewMode.List) return <ListContainer onScroll={onScroll} />;
     return <GridContainer onScroll={onScroll} />;
-  }, [displayFileIds.length, onScroll, viewConfig.entryHeight, viewConfig.mode]);
+  }, [displayFileIds.length, emptyPlaceholder, loading, onScroll, viewConfig.entryHeight, viewConfig.mode]);
 
   const ChonkyIcon = useContext(ChonkyIconContext);
   return (
     <div
-      ref={(element) => void drop(element)}
+      ref={dropRef}
       className={c([classes.fileListWrapper, localClasses.fileListWrapper])}
       role="list"
+      aria-busy={!!loading}
     >
       <div className={localClasses.dndDropZone}>
         <div className={localClasses.dndDropZoneIcon}>
@@ -52,6 +66,11 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
         </div>
       </div>
       {list}
+      {loading && (
+        <div className={loading === 'initial' ? classes.initialLoading : classes.refreshLoading}>
+          <CircularProgress size={loading === 'initial' ? 24 : 16} aria-label={loadingLabel} />
+        </div>
+      )}
     </div>
   );
 });
@@ -107,6 +126,17 @@ const useLocalStyles = makeLocalChonkyStyles((theme) => ({
 }));
 
 const useStyles = makeGlobalChonkyStyles(() => ({
+  initialLoading: {
+    height: '100%',
+    display: 'grid',
+    placeItems: 'center',
+  },
+  refreshLoading: {
+    position: 'absolute',
+    right: 12,
+    bottom: 12,
+    pointerEvents: 'none',
+  },
   fileListWrapper: {
     height: '100%',
     maxHeight: '100%',

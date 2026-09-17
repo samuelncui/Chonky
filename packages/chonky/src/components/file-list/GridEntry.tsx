@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileEntryStatus } from './FileEntryStatus';
 
 import { FileEntryProps } from '../../types/file-list.types';
 import { FileHelper } from '../../util/file-helper';
@@ -25,6 +26,7 @@ export const GridEntry: React.FC<FileEntryProps> = React.memo(({ file, selected,
       )}
       <div className={classes.gridFileEntryNameContainer}>
         <FileEntryName className={classes.gridFileEntryName} file={file} />
+        <FileEntryStatus status={file?.status} />
       </div>
     </div>
   );

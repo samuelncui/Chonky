@@ -96,7 +96,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
 
   if (!expanded) {
     return (
-      <ToolbarButton text="" tooltip={searchPlaceholderString} icon={ChonkyIconName.search} iconOnly onClick={expand} />
+      <ToolbarButton text="" tooltip={searchPlaceholderString} icon={ChonkyIconName.filter} iconOnly onClick={expand} />
     );
   }
 
@@ -118,7 +118,7 @@ export const ToolbarSearch: React.FC<ToolbarSearchProps> = React.memo(() => {
           startAdornment: (
             <InputAdornment className={classes.searchIcon} position="start">
               <ChonkyIcon
-                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.search}
+                icon={showLoadingIndicator ? ChonkyIconName.loading : ChonkyIconName.filter}
                 spin={showLoadingIndicator}
               />
             </InputAdornment>

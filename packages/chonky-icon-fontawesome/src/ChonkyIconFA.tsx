@@ -51,6 +51,7 @@ import { faObjectGroup } from '@fortawesome/free-solid-svg-icons/faObjectGroup';
 import { faPaste } from '@fortawesome/free-solid-svg-icons/faPaste';
 import { faRunning } from '@fortawesome/free-solid-svg-icons/faRunning';
 import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch';
+import { faFilter } from '@fortawesome/free-solid-svg-icons/faFilter';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons/faShareAlt';
 import { faSortAmountDownAlt } from '@fortawesome/free-solid-svg-icons/faSortAmountDownAlt';
 import { faSortAmountUpAlt } from '@fortawesome/free-solid-svg-icons/faSortAmountUpAlt';
@@ -86,6 +87,7 @@ const IconMap: { [iconName in ChonkyIconName]: any } = {
     [ChonkyIconName.paste]: faPaste,
     [ChonkyIconName.share]: faShareAlt,
     [ChonkyIconName.search]: faSearch,
+    [ChonkyIconName.filter]: faFilter,
     [ChonkyIconName.selectAllFiles]: faObjectGroup,
     [ChonkyIconName.clearSelection]: faEraser,
 

@@ -63,8 +63,18 @@ export const FolderChainButton: React.FC<FolderChainButtonProps> = React.memo(({
 const useStyles = makeLocalChonkyStyles((theme) => ({
   buttonContainer: {
     position: 'relative',
+    minWidth: 0,
   },
   baseBreadcrumb: {
+    fontSize: '13px !important',
+    minHeight: '28px !important',
+    padding: '2px !important',
+    maxWidth: '100%',
+    '& [data-chonky-toolbar-label]': {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
     color: (dndState: DndEntryState) => {
       let color = theme.palette.text.primary;
       if (dndState.dndIsOver) {

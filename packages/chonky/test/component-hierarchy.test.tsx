@@ -137,13 +137,13 @@ describe('FileBrowser', () => {
     );
 
     const filterButton = getByRole('button', { name: 'Filter' });
-    expect(filterButton.querySelector('[data-compatible-icon="search"]')).not.toBeNull();
+    expect(filterButton.querySelector('[data-compatible-icon="filter"]')).not.toBeNull();
     expect(filterButton.classList.contains('chonky-baseButton')).toBe(true);
     expect(filterButton.classList.contains('chonky-iconOnlyButton')).toBe(true);
     expect(queryByRole('textbox')).toBeNull();
     fireEvent.click(filterButton);
     const filter = getByRole('textbox');
-    expect(container.querySelector('[data-compatible-icon="search"]')).not.toBeNull();
+    expect(container.querySelector('[data-compatible-icon="filter"]')).not.toBeNull();
     expect(document.activeElement).toBe(filter);
 
     fireEvent.change(filter, { target: { value: 'File' } });
