@@ -6,7 +6,7 @@
 
 import Box from '@mui/material/Box';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 
 import { reduxActions } from '../../redux/reducers';
@@ -21,9 +21,11 @@ import { HotkeyListener } from './HotkeyListener';
 
 export interface ChonkyPresentationLayerProps {
   children?: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
-export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = ({ children }) => {
+export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = ({ children, footer }) => {
+  const browserRef = useRef<HTMLDivElement>(null);
   const dispatch: ChonkyDispatch = useChonkyDispatch();
   const fileActionIds = useChonkySelector(selectFileActionIds);
   const dndDisabled = useChonkySelector(selectIsDnDDisabled);
@@ -48,7 +50,7 @@ export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = (
   const hotkeyListenerComponents = useMemo(
     () =>
       fileActionIds.map((actionId) => (
-        <HotkeyListener key={`file-action-listener-${actionId}`} fileActionId={actionId} />
+        <HotkeyListener key={`file-action-listener-${actionId}`} fileActionId={actionId} browserRef={browserRef} />
       )),
     [fileActionIds],
   );
@@ -57,18 +59,55 @@ export const ChonkyPresentationLayer: React.FC<ChonkyPresentationLayerProps> = (
   const showContextMenu = useContextMenuTrigger();
 
   const classes = useStyles();
+  const hasFooter = footer != null && footer !== false;
   return (
     <ClickAwayListener onClickAway={handleClickAway}>
-      <Box className={classes.chonkyRoot} onContextMenu={showContextMenu}>
+      <Box
+        ref={browserRef}
+        tabIndex={0}
+        className={classes.chonkyRoot}
+        onPointerDownCapture={(event) => {
+          const target = event.target as HTMLElement;
+          if (target.closest('input,textarea,select,button,a,[contenteditable="true"]')) return;
+          browserRef.current?.focus({ preventScroll: true });
+        }}
+        onContextMenu={hasFooter ? undefined : showContextMenu}
+      >
         {!dndDisabled && dndContextAvailable && <DnDFileListDragLayer />}
         {hotkeyListenerComponents}
-        {children ? children : null}
+        {hasFooter ? (
+          <>
+            <Box className={classes.browserBody} onContextMenu={showContextMenu}>
+              {children}
+            </Box>
+            <Box className={classes.browserFooter}>{footer}</Box>
+          </>
+        ) : (
+          children
+        )}
       </Box>
     </ClickAwayListener>
   );
 };
 
 const useStyles = makeGlobalChonkyStyles((theme) => ({
+  browserBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '1 1 0',
+    minHeight: 0,
+    minWidth: 0,
+  },
+  browserFooter: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '0 1 auto',
+    minHeight: 0,
+    maxHeight: '50%',
+    overflow: 'auto',
+    borderTop: `1px solid ${theme.palette.divider}`,
+    userSelect: 'text',
+  },
   chonkyRoot: {
     backgroundColor: theme.palette.background.paper,
     border: theme.root.borderStyle ? `${theme.root.borderStyle} ${theme.palette.divider}` : undefined,

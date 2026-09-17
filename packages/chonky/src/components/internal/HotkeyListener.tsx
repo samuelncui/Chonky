@@ -15,10 +15,11 @@ import { ChonkyDispatch } from '../../types/redux.types';
 
 export interface HotkeyListenerProps {
   fileActionId: string;
+  browserRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const HotkeyListener: React.FC<HotkeyListenerProps> = React.memo((props) => {
-  const { fileActionId } = props;
+  const { fileActionId, browserRef } = props;
 
   const dispatch: ChonkyDispatch = useChonkyDispatch();
   const fileAction = useParamSelector(selectFileActionData, fileActionId);
@@ -30,12 +31,13 @@ export const HotkeyListener: React.FC<HotkeyListenerProps> = React.memo((props) 
 
     const hotkeysStr = fileAction.hotkeys.join(',');
     const hotkeyCallback = (event: KeyboardEvent) => {
+      if (!browserRef.current?.contains(document.activeElement)) return;
       event.preventDefault();
       dispatch(thunkRequestFileAction(fileAction, undefined));
     };
     hotkeys(hotkeysStr, hotkeyCallback);
     return () => hotkeys.unbind(hotkeysStr, hotkeyCallback);
-  }, [dispatch, fileAction]);
+  }, [dispatch, fileAction, browserRef]);
 
   return null;
 });

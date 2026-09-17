@@ -66,3 +66,19 @@ example and development instructions.
 ## License
 
 MIT
+
+## Presentation extensions (unreleased)
+
+- `FileData.status` supplies an accessible label, color and optional supplemental marker;
+  `FileData.details` adds contextual lines. Lists with details measure row heights.
+- `GroupedFileList` takes `groups`, `activeGroupId` and `onGroupChange`. The caller supplies
+  the active group's files to its surrounding `FileBrowser`. Headers are not selectable
+  files; changing the active group clears selection. `beforeFiles` and `afterFiles`
+  accept loading, paging or other caller controls.
+- `FileNavbar.rootContent` replaces the root breadcrumb content. `FileNavbar.path`
+  supplies the Copy path value; intermediate breadcrumbs fold when space is limited.
+- `FileBrowser.footer`, also accepted by `FullFileBrowser`, holds optional content below
+  the independently scrolling browser body. Footer inputs retain ordinary editing.
+- `FileList.emptyPlaceholder` supplies custom content for an empty, non-loading list.
+
+These options do not require application-specific data, services or filesystem operations.

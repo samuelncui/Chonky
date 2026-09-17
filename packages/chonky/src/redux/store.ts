@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect } from 'react';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 
 import { configureStore } from '@reduxjs/toolkit';
@@ -66,7 +66,9 @@ export const useDTE = <Args extends Array<any>>(actionCreator: (...args: Args) =
 
 export const usePropReduxUpdate = <Payload extends any>(actionCreator: (payload: Payload) => any, payload: Payload) => {
   const dispatch = useChonkyDispatch();
-  useEffect(() => {
+  // Controlled rows and breadcrumbs must match direct presentation props before
+  // paint, including the transition from initial loading to a populated folder.
+  useLayoutEffect(() => {
     dispatch(actionCreator(payload));
   }, [dispatch, actionCreator, payload]);
 };

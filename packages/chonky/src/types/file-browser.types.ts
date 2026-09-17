@@ -1,4 +1,4 @@
-import { ElementType, UIEvent } from 'react';
+import { ElementType, ReactNode, UIEvent } from 'react';
 import { Nullable } from 'tsdef';
 import { ThemeOptions as MuiThemeOptions } from '@mui/material/styles';
 import { DeepPartial } from 'tsdef';
@@ -54,6 +54,9 @@ export type ChonkyActionUnion = (typeof ChonkyActions)[keyof typeof ChonkyAction
  * Props for the `FileBrowser` component that is exposed to library users.
  */
 export interface FileBrowserProps {
+  /** Optional bottom content inside the browser frame, outside the file-list scroll area. */
+  footer?: ReactNode;
+
   /**
    * An ID used to identify this particular Chonky instance. Useful when there are
    * multiple Chonky instances on the same page, and they need to interact with

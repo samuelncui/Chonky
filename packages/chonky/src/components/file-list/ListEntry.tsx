@@ -1,4 +1,7 @@
 import React, { useContext, useMemo } from 'react';
+import { FileEntryStatus } from './FileEntryStatus';
+import { selectFileViewConfig } from '../../redux/selectors';
+import { useChonkySelector } from '../../redux/store';
 
 import { DndEntryState, FileEntryProps } from '../../types/file-list.types';
 import { useLocalizedFileEntryStrings } from '../../util/i18n';
@@ -12,19 +15,25 @@ import { FileEntryState, useCommonEntryStyles } from './GridEntryPreview';
 interface StyleState {
   entryState: FileEntryState;
   dndState: DndEntryState;
+  entryHeight: number;
+  hasDetails: boolean;
 }
 
 export const ListEntry: React.FC<FileEntryProps> = React.memo(({ file, selected, focused, dndState }) => {
   const entryState: FileEntryState = useFileEntryState(file, selected, focused);
   const dndIconName = useDndIcon(dndState);
+  const entryHeight = useChonkySelector(selectFileViewConfig).entryHeight;
+  const hasDetails = !!file?.details?.length;
 
   const { fileModDateString, fileSizeString } = useLocalizedFileEntryStrings(file);
   const styleState = useMemo<StyleState>(
     () => ({
       entryState,
       dndState,
+      entryHeight,
+      hasDetails,
     }),
-    [dndState, entryState],
+    [dndState, entryState, entryHeight, hasDetails],
   );
   const classes = useStyles(styleState);
   const commonClasses = useCommonEntryStyles(entryState);
@@ -43,13 +52,23 @@ export const ListEntry: React.FC<FileEntryProps> = React.memo(({ file, selected,
       </div>
       <div className={classes.listFileEntryName} title={file ? file.name : undefined}>
         <FileEntryName file={file} />
+        {file?.details?.map((detail, index) => (
+          <div key={index} className={classes.listFileEntryDetail} title={detail}>
+            {detail}
+          </div>
+        ))}
       </div>
-      <div className={classes.listFileEntryProperty}>
-        {file ? (fileModDateString ?? <span>—</span>) : <TextPlaceholder minLength={5} maxLength={15} />}
-      </div>
-      <div className={classes.listFileEntryProperty}>
-        {file ? (fileSizeString ?? <span>—</span>) : <TextPlaceholder minLength={10} maxLength={20} />}
-      </div>
+      {!file?.details?.length && (
+        <div className={classes.listFileEntryProperty}>
+          {file ? (fileModDateString ?? <span>—</span>) : <TextPlaceholder minLength={5} maxLength={15} />}
+        </div>
+      )}
+      {!file?.details?.length && (
+        <div className={classes.listFileEntryProperty}>
+          {file ? (fileSizeString ?? <span>—</span>) : <TextPlaceholder minLength={10} maxLength={20} />}
+        </div>
+      )}
+      <FileEntryStatus status={file?.status} reserve />
     </div>
   );
 });
@@ -59,6 +78,9 @@ const useStyles = makeLocalChonkyStyles((theme) => ({
     boxShadow: `inset ${theme.palette.divider} 0 -1px 0`,
     paddingRight: theme.margins.rootLayoutMargin,
     paddingLeft: theme.margins.rootLayoutMargin,
+    paddingTop: ({ hasDetails }: StyleState) => (hasDetails ? 4 : 0),
+    paddingBottom: ({ hasDetails }: StyleState) => (hasDetails ? 4 : 0),
+    minHeight: ({ entryHeight }: StyleState) => entryHeight,
     boxSizing: 'border-box',
     fontSize: theme.listFileEntry.fontSize,
     color: ({ dndState }: StyleState) =>
@@ -72,6 +94,9 @@ const useStyles = makeLocalChonkyStyles((theme) => ({
     opacity: 0.6,
   },
   listFileEntryIcon: {
+    flex: '0 0 28px',
+    width: 28,
+    textAlign: 'center',
     color: ({ entryState, dndState }: StyleState) =>
       dndState.dndIsOver
         ? dndState.dndCanDrop
@@ -100,5 +125,13 @@ const useStyles = makeLocalChonkyStyles((theme) => ({
     flex: '0 1 150px',
     padding: [2, 8],
     zIndex: 20,
+  },
+  listFileEntryDetail: {
+    color: theme.palette.text.secondary,
+    fontSize: theme.listFileEntry.propertyFontSize,
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    lineHeight: '18px',
   },
 }));

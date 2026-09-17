@@ -1,5 +1,15 @@
 import { vi } from 'vitest';
 
+// jsdom has no layout engine; browser tests cover actual resize measurements.
+vi.stubGlobal(
+  'ResizeObserver',
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+);
+
 Object.defineProperty(globalThis.CSS, 'escape', {
   configurable: true,
   value: globalThis.CSS.escape.bind(globalThis.CSS),

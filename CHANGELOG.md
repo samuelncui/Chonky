@@ -2,6 +2,14 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
+## Unreleased
+
+- Add optional file status indicators and detail lines, with measured list-row heights.
+- Add controlled `GroupedFileList`, custom root breadcrumb content and explicit copy paths.
+- Add browser footers and custom empty-list placeholders.
+- Scope keyboard actions to the focused browser and retain drag connectors across selection changes.
+- Fold overflowing breadcrumbs and synchronize controlled files before paint.
+
 ## 0.3.2 - 2026-09-04
 
 - Add `FileBrowserHandle.revealFile(id)` to select a displayed, selectable file

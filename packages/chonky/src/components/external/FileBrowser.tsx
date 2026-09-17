@@ -70,7 +70,7 @@ export const FileBrowser = React.forwardRef<FileBrowserHandle, FileBrowserProps 
     const chonkyComps = (
       <>
         <ChonkyBusinessLogic ref={ref} {...props} />
-        <ChonkyPresentationLayer>{children}</ChonkyPresentationLayer>
+        <ChonkyPresentationLayer footer={props.footer}>{children}</ChonkyPresentationLayer>
       </>
     );
 

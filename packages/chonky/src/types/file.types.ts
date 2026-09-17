@@ -3,6 +3,14 @@ import { Nullable, Undefinable } from 'tsdef';
 import { ChonkyIconName } from './icons.types';
 
 export interface FileData {
+  /** Optional accessible status, rendered after properties without changing file interactions. */
+  status?: {
+    label: string;
+    color: string;
+    marker?: { label: string; color: string; kind: 'warning' | 'changed' | 'unknown' };
+  };
+  /** Optional secondary metadata lines in list view; rows measure their content height. */
+  details?: string[];
   id: string; // (Required) String that uniquely identifies the file
   name: string; // (Required) Full name, e.g. `MyImage.jpg`
   ext?: string; // File extension, e.g. `.jpg`
