@@ -1,17 +1,11 @@
 import { MaybePromise, Undefinable } from 'tsdef';
 
-import { FileActionData, FileActionState } from '../../types/action-handler.types';
-import { FileAction } from '../../types/action.types';
+import { FileActionData } from '../../types/action-handler.types';
+import { CustomVisibilityState, FileAction } from '../../types/action.types';
 import { ChonkyDispatch, ChonkyThunk } from '../../types/redux.types';
 import { Logger } from '../../util/logger';
 import { reduxActions } from '../reducers';
-import {
-  selectContextMenuTriggerFile,
-  selectExternalFileActionHandler,
-  selectFileActionMap,
-  selectInstanceId,
-  selectSelectedFiles,
-} from '../selectors';
+import { getFileActionState, selectExternalFileActionHandler, selectFileActionMap } from '../selectors';
 import { thunkActivateSortAction, thunkApplySelectionTransform } from './file-actions.thunks';
 
 /**
@@ -44,11 +38,10 @@ export const thunkDispatchFileAction =
  * dispatches the action to the external action handler.
  */
 export const thunkRequestFileAction =
-  <Action extends FileAction>(action: Action, payload: Action['__payloadType']): ChonkyThunk =>
+  <Action extends FileAction>(action: Action, payload: Action['__payloadType'], groupId?: string): ChonkyThunk =>
   (dispatch, getState) => {
     Logger.debug(`FILE ACTION REQUEST: [${action.id}]`, 'action:', action, 'payload:', payload);
     const state = getState();
-    const instanceId = selectInstanceId(state);
 
     if (!selectFileActionMap(state)[action.id]) {
       Logger.warn(
@@ -60,9 +53,12 @@ export const thunkRequestFileAction =
     }
 
     // Determine files for the action if action requires selection
-    const selectedFiles = selectSelectedFiles(state);
-    const selectedFilesForAction = action.fileFilter ? selectedFiles.filter(action.fileFilter) : selectedFiles;
-    if (action.requiresSelection && selectedFilesForAction.length === 0) {
+    if (groupId !== undefined && !state.grouping?.groups.some((group) => group.id === groupId)) return;
+    const actionState = getFileActionState(state, action, groupId);
+    const visibility = action.customVisibility?.(actionState);
+    if (visibility === CustomVisibilityState.Hidden || visibility === CustomVisibilityState.Disabled) return;
+    if (state.grouping && action.fileViewConfig && action.fileViewConfig.mode !== 'list') return;
+    if (action.requiresSelection && actionState.selectedFilesForAction.length === 0) {
       Logger.warn(
         `Internal components requested the "${action.id}" file ` +
           `action, but the selection for this action was empty. This ` +
@@ -70,14 +66,6 @@ export const thunkRequestFileAction =
       );
       return;
     }
-
-    const contextMenuTriggerFile = selectContextMenuTriggerFile(state);
-    const actionState: FileActionState<{}> = {
-      instanceId,
-      selectedFiles,
-      selectedFilesForAction,
-      contextMenuTriggerFile,
-    };
 
     // === Update sort state if necessary
     const sortKeySelector = action.sortKeySelector;
@@ -93,7 +81,7 @@ export const thunkRequestFileAction =
 
     // === Apply selection transform if necessary
     const selectionTransform = action.selectionTransform;
-    if (selectionTransform) dispatch(thunkApplySelectionTransform(action));
+    if (selectionTransform) dispatch(thunkApplySelectionTransform(action, groupId));
 
     // Apply the effect
     const effect = action.effect;

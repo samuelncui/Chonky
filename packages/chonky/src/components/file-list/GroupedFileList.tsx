@@ -5,12 +5,8 @@ import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
 import { makeLocalChonkyStyles } from '../../util/styles';
 import { FileList } from './FileList';
 
-export interface FileGroup {
-  id: string;
-  name: string;
-  description?: string;
-  badge?: string;
-}
+import { FileGroup } from '../../types/grouping.types';
+export type { FileGroup } from '../../types/grouping.types';
 
 export interface GroupedFileListProps {
   groups: FileGroup[];

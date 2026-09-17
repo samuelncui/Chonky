@@ -3,6 +3,7 @@ import { Nullable } from 'tsdef';
 import { Action, Store, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 
 import { GenericFileActionHandler } from './action-handler.types';
+import { FileGrouping } from './grouping.types';
 import { FileActionMenuItem } from './action-menus.types';
 import { FileAction, FileActionMap } from './action.types';
 import { ContextMenuConfig } from './context-menu.types';
@@ -32,6 +33,11 @@ export type RootState = {
   fileMap: FileMap;
   fileIds: Nullable<string>[];
   cleanFileIds: string[];
+
+  grouping: FileGrouping | null;
+  activeGroupId: string | undefined;
+  collapsedGroupIds: Record<string, boolean>;
+  fileGroupMap: Record<string, string>;
 
   // Search
   focusSearchInput: Nullable<() => void>;

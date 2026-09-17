@@ -11,7 +11,13 @@ import { thunkRequestFileAction } from './thunks/dispatchers.thunks';
 export const useStoreWatchers = (store: Store<RootState>) => {
   useEffect(() => {
     let previousSelection = selectSelectionMap(store.getState());
+    let previousGroup = store.getState().activeGroupId;
     return store.subscribe(() => {
+      const state = store.getState();
+      if (state.activeGroupId !== previousGroup) {
+        previousGroup = state.activeGroupId;
+        state.grouping?.onGroupChange?.(previousGroup);
+      }
       const selectionMap: FileSelection = selectSelectionMap(store.getState());
 
       // We don't check for deep equality here as we expect the

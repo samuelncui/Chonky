@@ -9,7 +9,8 @@ import {
   selectForceEnableOpenParent,
   selectOptionValue,
   selectParentFolder,
-  selectSelectedFilesForActionCount,
+  getFileActionState,
+  selectGrouping,
   selectSortActionId,
   selectSortOrder,
 } from '../redux/selectors';
@@ -20,15 +21,19 @@ import { CustomVisibilityState } from '../types/action.types';
 import { SortOrder } from '../types/sort.types';
 import { FileHelper } from './file-helper';
 
-export const useFileActionTrigger = (fileActionId: string) => {
+export const useFileActionTrigger = (fileActionId: string, groupId?: string) => {
   const dispatch: any = useChonkyDispatch();
   const fileAction = useParamSelector(selectFileActionData, fileActionId);
-  return useCallback(() => dispatch(thunkRequestFileAction(fileAction, undefined)), [dispatch, fileAction]);
+  return useCallback(
+    () => dispatch(thunkRequestFileAction(fileAction, undefined, groupId)),
+    [dispatch, fileAction, groupId],
+  );
 };
 
 export const useFileActionProps = (
   fileActionId: string,
-): { icon: Nullable<ChonkyIconName | string>; active: boolean; disabled: boolean } => {
+  groupId?: string,
+): { icon: Nullable<ChonkyIconName | string>; active: boolean; disabled: boolean; hidden: boolean } => {
   const parentFolder = useChonkySelector(selectParentFolder);
   const forceEnableOpenParent = useChonkySelector(selectForceEnableOpenParent);
   const fileViewConfig = useChonkySelector(selectFileViewConfig);
@@ -40,12 +45,16 @@ export const useFileActionProps = (
   // @ts-ignore
   const optionValue = useParamSelector(selectOptionValue, action?.option?.id);
 
-  const actionSelectionSize = useParamSelector(selectSelectedFilesForActionCount, fileActionId);
-
-  const actionSelectionEmpty = actionSelectionSize === 0;
+  const grouping = useChonkySelector(selectGrouping);
+  const actionSelectionEmpty = useChonkySelector(
+    (state) => !action || getFileActionState(state, action, groupId).selectedFilesForAction.length === 0,
+  );
+  const visibility = useChonkySelector((state) =>
+    action?.customVisibility?.(getFileActionState(state, action, groupId)),
+  );
 
   return useMemo(() => {
-    if (!action) return { icon: null, active: false, disabled: true };
+    if (!action) return { icon: null, active: false, disabled: true, hidden: true };
 
     let icon = action.button?.icon ?? null;
     if (action.sortKeySelector) {
@@ -70,12 +79,8 @@ export const useFileActionProps = (
     const isFileViewButtonAndCurrentView = action.fileViewConfig === fileViewConfig;
     const isOptionAndEnabled = action.option ? !!optionValue : false;
 
-    let customDisabled = false;
-    let customActive = false;
-    if (action.customVisibility !== undefined) {
-      customDisabled = action.customVisibility() === CustomVisibilityState.Disabled;
-      customActive = action.customVisibility() === CustomVisibilityState.Active;
-    }
+    const customDisabled = visibility === CustomVisibilityState.Disabled;
+    const customActive = visibility === CustomVisibilityState.Active;
     const active = isSortButtonAndCurrentSort || isFileViewButtonAndCurrentView || isOptionAndEnabled || customActive;
 
     let disabled: boolean = (!!action.requiresSelection && actionSelectionEmpty) || customDisabled;
@@ -87,7 +92,10 @@ export const useFileActionProps = (
       disabled = disabled || (!forceEnableOpenParent && !FileHelper.isOpenable(parentFolder));
     }
 
-    return { icon, active, disabled };
+    const hidden =
+      visibility === CustomVisibilityState.Hidden ||
+      (!!grouping && !!action.fileViewConfig && action.fileViewConfig.mode !== 'list');
+    return { icon, active, disabled, hidden };
   }, [
     parentFolder,
     fileViewConfig,
@@ -97,5 +105,7 @@ export const useFileActionProps = (
     optionValue,
     actionSelectionEmpty,
     forceEnableOpenParent,
+    visibility,
+    grouping,
   ]);
 };

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { DuplicatesDemo } from './duplicates';
 import { createRoot } from 'react-dom/client';
 
 import {
@@ -75,6 +76,7 @@ const App = () => {
 
   return (
     <main style={{ boxSizing: 'border-box', fontFamily: 'sans-serif', padding: 16 }}>
+      <a href="/?example=duplicates">Identical files example</a>
       <h1 style={{ margin: '0 0 12px' }}>Chonky example</h1>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
         <button type="button" onClick={() => setFiles(sampleFiles)}>
@@ -133,4 +135,6 @@ const App = () => {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Missing root element');
 
-createRoot(rootElement).render(<App />);
+createRoot(rootElement).render(
+  new URLSearchParams(window.location.search).get('example') === 'duplicates' ? <DuplicatesDemo /> : <App />,
+);

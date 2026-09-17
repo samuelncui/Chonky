@@ -6,6 +6,8 @@ export { FileNavbar } from './components/external/FileNavbar';
 export { FileToolbar } from './components/external/FileToolbar';
 export { FileList } from './components/file-list/FileList';
 export { GroupedFileList } from './components/file-list/GroupedFileList';
+export type { FileGrouping, FileListGroup, FileActionGroupContext } from './types/grouping.types';
+export { CustomVisibilityState } from './types/action.types';
 export type { FileGroup, GroupedFileListProps } from './components/file-list/GroupedFileList';
 export { FileContextMenu } from './components/external/FileContextMenu';
 export { FullFileBrowser } from './components/external/FullFileBrowser';
@@ -19,13 +21,7 @@ export { makeGlobalChonkyStyles } from './util/styles';
 export type { ChonkyTheme } from './util/styles';
 
 export type { FileData, FileArray } from './types/file.types';
-export type {
-  FileAction,
-  FileActionEffect,
-  FileSelectionTransform,
-  FileActionButton,
-  CustomVisibilityState,
-} from './types/action.types';
+export type { FileAction, FileActionEffect, FileSelectionTransform, FileActionButton } from './types/action.types';
 export type {
   GenericFileActionHandler,
   MapFileActionsToData,

@@ -1,6 +1,7 @@
 import { AnyObject, Nullable } from 'tsdef';
 
 import { FileAction } from './action.types';
+import { FileActionGroupContext } from './grouping.types';
 import { FileData } from './file.types';
 
 export type FileActionData<Action extends FileAction> = {
@@ -16,6 +17,8 @@ export type FileActionState<ExtraState extends object = AnyObject> = {
    * you're reusing the same action handler for multiple Chonky instances.
    */
   instanceId: string;
+  /** Target group when invoked from a grouped browser. Payload remains unchanged. */
+  group?: FileActionGroupContext;
   /**
    * All selected files at the time the action was requested. Note that this does not
    * reflect the changes applied by action's selection transform, if one is defined.

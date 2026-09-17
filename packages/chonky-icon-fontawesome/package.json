@@ -1,6 +1,6 @@
 {
   "name": "@samuelncui/chonky-icon-fontawesome",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "FontAwesome icon component for Chonky file browser",
   "license": "MIT",
   "main": "dist/chonky-icon-fontawesome.cjs",

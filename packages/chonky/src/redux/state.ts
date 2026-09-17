@@ -19,6 +19,11 @@ export const initialRootState: RootState = {
   fileIds: [],
   cleanFileIds: [],
 
+  grouping: null,
+  activeGroupId: undefined,
+  collapsedGroupIds: {},
+  fileGroupMap: {},
+
   focusSearchInput: null,
   searchString: '',
   searchMode: 'currentFolder',

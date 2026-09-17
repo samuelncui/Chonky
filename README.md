@@ -70,6 +70,24 @@ general concepts, but APIs and compatibility may differ from this fork.
 > Please [create an issue](https://github.com/samuelncui/Chonky/issues) if you have a
 > problem or want to request a feature.
 
+## Local demo
+
+```shell
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --filter @samuelncui/chonky-example dev
+```
+
+Open [the example](http://127.0.0.1:4173/) or the
+[identical-files demo](http://127.0.0.1:4173/?example=duplicates).
+The latter offers continuous/single-group layouts in the Options menu, caller-defined keep/delete
+actions, resettable in-memory fixtures, and 1,000 groups containing 5,000 files.
+See [grouped-list integration](./packages/chonky/README.md#grouped-lists-unreleased)
+for the API and selection semantics. Rebuild the packages after library changes;
+the example consumes their built exports.
+
+Run `pnpm check` and `pnpm e2e` for static, unit and browser verification.
+
 ## License
 
 MIT © Samuel N Cui. 2023
