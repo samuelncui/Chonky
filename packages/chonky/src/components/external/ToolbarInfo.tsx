@@ -10,7 +10,7 @@ import { useChonkySelector } from '../../redux/store';
 
 import Typography from '@mui/material/Typography';
 
-import { selectHiddenFileCount, selectSelectionSize, selectors } from '../../redux/selectors';
+import { selectGrouping, selectHiddenFileCount, selectSelectionSize, selectors } from '../../redux/selectors';
 import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
 
@@ -19,22 +19,31 @@ export interface ToolbarInfoProps {}
 export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
   const classes = useStyles();
 
+  const grouping = useChonkySelector(selectGrouping);
   const fileCount = useChonkySelector(selectors.getDisplayFileIds).length;
   const selectionSize = useChonkySelector(selectSelectionSize);
   const hiddenCount = useChonkySelector(selectHiddenFileCount);
 
   const intl = useIntl();
-  const fileCountString = intl.formatMessage(
-    {
-      id: getI18nId(I18nNamespace.Toolbar, 'visibleFileCount'),
-      defaultMessage: `{fileCount, plural,
+  const fileCountString = grouping?.sparse
+    ? intl.formatMessage(
+        {
+          id: getI18nId(I18nNamespace.Toolbar, 'sparseRowCount'),
+          defaultMessage: '{rowCount, plural, one {# row} other {# rows}}',
+        },
+        { rowCount: grouping.sparse.totalCount },
+      )
+    : intl.formatMessage(
+        {
+          id: getI18nId(I18nNamespace.Toolbar, 'visibleFileCount'),
+          defaultMessage: `{fileCount, plural,
                 =0 {# items}
                 one {# item}
                 other {# items}
             }`,
-    },
-    { fileCount },
-  );
+        },
+        { fileCount },
+      );
   const selectedString = intl.formatMessage(
     {
       id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),
@@ -45,16 +54,18 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
     },
     { fileCount: selectionSize },
   );
-  const hiddenString = intl.formatMessage(
-    {
-      id: getI18nId(I18nNamespace.Toolbar, 'hiddenFileCount'),
-      defaultMessage: `{fileCount, plural,
+  const hiddenString = grouping?.sparse
+    ? ''
+    : intl.formatMessage(
+        {
+          id: getI18nId(I18nNamespace.Toolbar, 'hiddenFileCount'),
+          defaultMessage: `{fileCount, plural,
                 =0 {}
                 other {# hidden}
             }`,
-    },
-    { fileCount: hiddenCount },
-  );
+        },
+        { fileCount: hiddenCount },
+      );
 
   return (
     <div className={classes.infoContainer}>

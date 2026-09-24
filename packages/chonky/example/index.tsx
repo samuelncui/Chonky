@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { DuplicatesDemo } from './duplicates';
+import { SparseDemo } from './sparse';
 import { createRoot } from 'react-dom/client';
 
 import {
@@ -135,6 +136,7 @@ const App = () => {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Missing root element');
 
+const example = new URLSearchParams(window.location.search).get('example');
 createRoot(rootElement).render(
-  new URLSearchParams(window.location.search).get('example') === 'duplicates' ? <DuplicatesDemo /> : <App />,
+  example === 'duplicates' ? <DuplicatesDemo /> : example === 'sparse' ? <SparseDemo /> : <App />,
 );

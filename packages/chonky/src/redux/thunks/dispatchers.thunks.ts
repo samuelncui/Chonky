@@ -53,7 +53,13 @@ export const thunkRequestFileAction =
     }
 
     // Determine files for the action if action requires selection
-    if (groupId !== undefined && !state.grouping?.groups.some((group) => group.id === groupId)) return;
+    if (
+      groupId !== undefined &&
+      !(state.grouping?.sparse
+        ? state.grouping.sparse.rows.some((row) => row.group.id === groupId)
+        : state.grouping?.groups.some((group) => group.id === groupId))
+    )
+      return;
     const actionState = getFileActionState(state, action, groupId);
     const visibility = action.customVisibility?.(actionState);
     if (visibility === CustomVisibilityState.Hidden || visibility === CustomVisibilityState.Disabled) return;

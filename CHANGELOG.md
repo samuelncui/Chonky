@@ -2,6 +2,17 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
+## 0.3.4 - 2026-09-25
+
+- Add sparse continuous grouping to `FileBrowser.grouping` for caller-managed
+  display projections and indexed, partially loaded virtual rows.
+- Keep unloaded rows inert while preserving loaded file selection, context,
+  toolbar actions, group header actions, and controlled group collapse.
+- Show the full sparse row count and visible loading placeholders; hide the
+  built-in Filter when a caller owns the global sparse projection.
+- Leave hidden-file projection and filtering controls to the sparse caller;
+  preserve selection and browser shortcuts while announcing loading rows.
+
 ## 0.3.3 - 2026-09-17
 
 - Add optional `FileBrowser.grouping` with continuous/single-group virtual lists,

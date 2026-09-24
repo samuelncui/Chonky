@@ -35,15 +35,29 @@ const reducers = {
     const previous = state.grouping;
     state.grouping = action.payload;
     state.fileGroupMap = {};
-    for (const group of action.payload?.groups ?? []) {
-      for (const id of group.fileIds) {
-        if (!(id in state.fileGroupMap)) state.fileGroupMap[id] = group.id;
+    if (action.payload?.sparse) {
+      for (const row of action.payload.sparse.rows) {
+        if (row.kind === 'file' && !(row.fileId in state.fileGroupMap)) {
+          state.fileGroupMap[row.fileId] = row.group.id;
+        }
+      }
+    } else {
+      for (const group of action.payload?.groups ?? []) {
+        for (const id of group.fileIds) {
+          if (!(id in state.fileGroupMap)) state.fileGroupMap[id] = group.id;
+        }
       }
     }
     if (!previous || previous.activeGroupId !== action.payload?.activeGroupId) {
       activateGroup(state, action.payload?.activeGroupId);
     }
-    if (!action.payload?.groups.some((group) => group.id === state.activeGroupId)) activateGroup(state, undefined);
+    if (
+      action.payload?.sparse
+        ? !action.payload.sparse.rows.some((row) => row.group.id === state.activeGroupId)
+        : !action.payload?.groups.some((group) => group.id === state.activeGroupId)
+    ) {
+      activateGroup(state, undefined);
+    }
     if (previous?.mode !== action.payload?.mode) state.collapsedGroupIds = {};
     for (const id of Object.keys(state.selectionMap)) {
       if (state.grouping && state.fileGroupMap[id] !== state.activeGroupId) delete state.selectionMap[id];
@@ -59,6 +73,12 @@ const reducers = {
   toggleGroup(state: RootState, action: PayloadAction<string>) {
     if (!state.grouping) return;
     const id = action.payload;
+    if (state.grouping.sparse) {
+      activateGroup(state, undefined);
+      state.selectionMap = {};
+      state.lastClick = null;
+      return;
+    }
     if (state.grouping.mode === 'single') {
       activateGroup(state, state.activeGroupId === id ? undefined : id);
       return;
@@ -114,7 +134,10 @@ const reducers = {
   },
   selectAllFiles(state: RootState) {
     if (state.disableSelection) return;
-    state.fileIds
+    const fileIds = state.grouping?.sparse
+      ? state.grouping.sparse.rows.filter((row) => row.kind === 'file').map((row) => row.fileId)
+      : state.fileIds;
+    fileIds
       .filter(
         (id) => !state.grouping || (id && !!state.activeGroupId && state.fileGroupMap[id] === state.activeGroupId),
       )

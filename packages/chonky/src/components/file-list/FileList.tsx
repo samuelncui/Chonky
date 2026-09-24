@@ -18,6 +18,7 @@ import { c, getStripeGradient, makeGlobalChonkyStyles, makeLocalChonkyStyles } f
 import { FileListEmpty } from './FileListEmpty';
 import { GridContainer } from './GridContainer';
 import { GroupedListContainer } from './GroupedListContainer';
+import { SparseGroupedListContainer } from './SparseGroupedListContainer';
 import { ListContainer } from './ListContainer';
 
 export interface FileListProps {
@@ -56,6 +57,13 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
 
   const list = useMemo(() => {
     if (loading === 'initial') return null;
+    if (grouping?.sparse) {
+      return grouping.sparse.totalCount > 0 ? (
+        <SparseGroupedListContainer onScroll={onScroll} />
+      ) : (
+        (emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />)
+      );
+    }
     if (grouping && groups.length) return <GroupedListContainer onScroll={onScroll} />;
     if (displayFileIds.length === 0) return emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />;
     if (viewConfig.mode === FileViewMode.List) return <ListContainer onScroll={onScroll} />;
