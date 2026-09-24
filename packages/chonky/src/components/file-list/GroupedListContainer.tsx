@@ -12,7 +12,7 @@ import {
 } from '../../redux/selectors';
 import { useChonkyDispatch, useChonkySelector, useParamSelector } from '../../redux/store';
 import { FileViewMode } from '../../types/file-view.types';
-import { FileListGroup } from '../../types/grouping.types';
+import { FileListGroup, SparseFileGroup } from '../../types/grouping.types';
 import { useFileActionProps, useFileActionTrigger } from '../../util/file-actions';
 import { useLocalizedFileActionStrings } from '../../util/i18n';
 import { makeLocalChonkyStyles } from '../../util/styles';
@@ -43,7 +43,15 @@ const GroupAction = ({ actionId, groupId }: { actionId: string; groupId: string 
   );
 };
 
-const GroupHeader = ({ group, expanded }: { group: FileListGroup & { totalCount: number }; expanded: boolean }) => {
+export const GroupHeader = ({
+  group,
+  expanded,
+  onToggle,
+}: {
+  group: (FileListGroup & { totalCount: number }) | SparseFileGroup;
+  expanded: boolean;
+  onToggle?: () => void;
+}) => {
   const classes = useStyles();
   const dispatch = useChonkyDispatch();
   const activeId = useChonkySelector(selectActiveGroupId);
@@ -60,7 +68,7 @@ const GroupHeader = ({ group, expanded }: { group: FileListGroup & { totalCount:
         className={classes.toggle}
         aria-expanded={expanded}
         aria-label={group.name}
-        onClick={() => dispatch(reduxActions.toggleGroup(group.id))}
+        onClick={() => (onToggle ? onToggle() : dispatch(reduxActions.toggleGroup(group.id)))}
       >
         <span aria-hidden="true" className={classes.chevron}>
           {expanded ? '⌄' : '›'}
@@ -70,10 +78,12 @@ const GroupHeader = ({ group, expanded }: { group: FileListGroup & { totalCount:
           {group.description && <span>{group.description}</span>}
         </span>
         <span className={classes.count}>
-          {group.fileIds.length === group.totalCount
-            ? group.totalCount
-            : `${group.fileIds.length} / ${group.totalCount}`}{' '}
-          {group.totalCount === 1 ? 'file' : 'files'}
+          {'memberCount' in group
+            ? group.memberCount
+            : group.fileIds.length === group.totalCount
+              ? group.totalCount
+              : `${group.fileIds.length} / ${group.totalCount}`}{' '}
+          {('memberCount' in group ? group.memberCount : group.totalCount) === 1 ? 'file' : 'files'}
         </span>
         {group.badge && <span className={classes.count}>{group.badge}</span>}
       </button>

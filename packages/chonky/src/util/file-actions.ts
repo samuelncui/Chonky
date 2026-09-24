@@ -94,6 +94,7 @@ export const useFileActionProps = (
 
     const hidden =
       visibility === CustomVisibilityState.Hidden ||
+      (!!grouping?.sparse && action.id === ChonkyActions.ToggleHiddenFiles.id) ||
       (!!grouping && !!action.fileViewConfig && action.fileViewConfig.mode !== 'list');
     return { icon, active, disabled, hidden };
   }, [

@@ -6,7 +6,14 @@ export { FileNavbar } from './components/external/FileNavbar';
 export { FileToolbar } from './components/external/FileToolbar';
 export { FileList } from './components/file-list/FileList';
 export { GroupedFileList } from './components/file-list/GroupedFileList';
-export type { FileGrouping, FileListGroup, FileActionGroupContext } from './types/grouping.types';
+export type {
+  FileGrouping,
+  FileListGroup,
+  SparseFileGroup,
+  SparseFileRow,
+  SparseFileGrouping,
+  FileActionGroupContext,
+} from './types/grouping.types';
 export { CustomVisibilityState } from './types/action.types';
 export type { FileGroup, GroupedFileListProps } from './components/file-list/GroupedFileList';
 export { FileContextMenu } from './components/external/FileContextMenu';

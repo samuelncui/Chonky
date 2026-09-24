@@ -158,11 +158,16 @@ export const thunkApplySelectionTransform =
     const inTargetGroup = (id: string) =>
       !state.grouping || (!!targetGroupId && state.fileGroupMap[id] === targetGroupId);
     const prevSelection = new Set<string>(Object.keys(selectSelectionMap(state)).filter(inTargetGroup));
-    const hiddenFileIds = new Set<string>(Object.keys(selectHiddenFileIdMap(state)));
+    const hiddenFileIds = state.grouping?.sparse
+      ? new Set<string>()
+      : new Set<string>(Object.keys(selectHiddenFileIdMap(state)));
 
+    const fileIds = state.grouping?.sparse
+      ? state.grouping.sparse.rows.filter((row) => row.kind === 'file').map((row) => row.fileId)
+      : selectCleanFileIds(state);
     const newSelection = selectionTransform({
       prevSelection,
-      fileIds: selectCleanFileIds(state).filter(inTargetGroup),
+      fileIds: fileIds.filter(inTargetGroup),
       fileMap: selectFileMap(state),
       hiddenFileIds,
     });

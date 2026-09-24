@@ -207,7 +207,7 @@ const getVisibleFileIds = createSelector(
 export const selectDisplayGroups = createSelector(
   [selectGrouping, getVisibleFileIds, selectFileGroupMap, selectFileMap],
   (grouping, visibleIds, groupMap, fileMap) => {
-    if (!grouping) return [];
+    if (!grouping || grouping.sparse) return [];
     const members = new Map<string, string[]>();
     for (const id of visibleIds) {
       if (!id || !groupMap[id]) continue;
@@ -232,8 +232,16 @@ export const selectExpandedGroups = createSelector(
     })),
 );
 const getDisplayFileIds = createSelector(
-  [getVisibleFileIds, selectGrouping, selectExpandedGroups],
-  (ids, grouping, groups) => (grouping ? groups.flatMap((group) => (group.expanded ? group.fileIds : [])) : ids),
+  [getVisibleFileIds, selectGrouping, selectExpandedGroups, selectFileMap],
+  (ids, grouping, groups, fileMap) => {
+    if (grouping?.sparse) {
+      return grouping.sparse.rows
+        .flatMap((row) => (row.kind === 'file' && fileMap[row.fileId] ? [row] : []))
+        .sort((a, b) => a.index - b.index)
+        .map((row) => row.fileId);
+    }
+    return grouping ? groups.flatMap((group) => (group.expanded ? group.fileIds : [])) : ids;
+  },
 );
 
 /** The same action context is used by buttons, shortcuts and imperative dispatch. */
@@ -242,7 +250,18 @@ export const getFileActionState = (
   action: FileAction,
   groupId = state.activeGroupId,
 ): FileActionState<{}> => {
-  const group = state.grouping?.groups.find((candidate) => candidate.id === groupId);
+  const grouping = state.grouping;
+  const group = grouping?.sparse
+    ? grouping.sparse.rows.find((row) => row.group.id === groupId)?.group
+    : grouping?.groups.find((candidate) => candidate.id === groupId);
+  const groupFileIds = grouping?.sparse
+    ? grouping.sparse.rows
+        .flatMap((row) => (row.kind === 'file' && row.group.id === groupId ? [row] : []))
+        .sort((a, b) => a.index - b.index)
+        .map((row) => row.fileId)
+    : group && 'fileIds' in group
+      ? group.fileIds
+      : [];
   const selectedFiles = selectSelectedFiles(state).filter(
     (file) => file && (!state.grouping || (!!group && state.fileGroupMap[file.id] === group.id)),
   );
@@ -257,7 +276,7 @@ export const getFileActionState = (
       ? {
           group: {
             id: group.id,
-            fileIds: group.fileIds.filter((id) => !!state.fileMap[id] && state.fileGroupMap[id] === group.id),
+            fileIds: groupFileIds.filter((id) => !!state.fileMap[id] && state.fileGroupMap[id] === group.id),
           },
         }
       : {}),

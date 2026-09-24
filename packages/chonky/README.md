@@ -155,3 +155,41 @@ Existing zero-argument visibility callbacks remain valid. Hidden and disabled
 states are rechecked when dispatching, including shortcuts and ref requests.
 Callbacks should be pure. Group operations must distinguish full group membership
 from the selected/filtered files when deciding their target set.
+
+### Sparse continuous grouping
+
+For a large caller-managed list, pass `mode: 'continuous'` with `sparse` instead
+of `groups`. `totalCount` is the number of rows in the caller's current display
+projection, including group headers; `rows` contains only loaded positions.
+
+```tsx
+grouping={{
+  mode: 'continuous',
+  sparse: {
+    totalCount: 100_000,
+    rows: [
+      { index: 0, kind: 'group', group: { id: 'coast', name: 'Coast', memberCount: 60_000 } },
+      { index: 1, kind: 'file', group: { id: 'coast', name: 'Coast', memberCount: 60_000 }, fileId: 'original' },
+    ],
+    onRangeChanged: (startIndex, endIndex) => loadVisibleRows(startIndex, endIndex),
+    onToggleGroup: (groupId) => toggleGroupInProjection(groupId),
+  },
+}}
+```
+
+Range indices are inclusive. Each loaded file row refers to an entry in `files`;
+its group metadata also identifies its action context when the header is outside
+the loaded range. Use unique file IDs and indices, with indices between zero and
+`totalCount - 1`. `memberCount` is the group's full member count. Set `expanded`
+on a group to control its header chevron; it defaults to `true`. The caller updates
+`totalCount` and `rows` after a collapse, removal, or other projection change.
+Unloaded positions render visible, inert loading placeholders. The toolbar
+reports the projection's total **rows** (including headers), not just loaded
+files. Chonky does not sort or filter the caller-managed projection, so its
+built-in Filter and Show hidden files controls are hidden in sparse mode. The
+caller must provide a server-backed search and update the projection if search
+is needed. Hidden file rows included by the caller remain selectable. The sparse
+API has no failed-page state; the caller owns page errors and retry controls.
+Selection, Select All, and group action `fileIds` cover loaded file rows only.
+Keep a selected file's row in `rows` while it must remain
+selectable across range changes. The existing `groups` form retains its behavior.
