@@ -10,7 +10,7 @@ import { reduxActions } from '../../redux/reducers';
 import { initialRootState } from '../../redux/state';
 import { useDTE, usePropReduxUpdate } from '../../redux/store';
 import {
-  thunkActivateSortAction,
+  thunkUpdateDefaultSortActionId,
   thunkUpdateDefaultFileViewActionId,
   thunkUpdateRawFileActions,
 } from '../../redux/thunks/file-actions.thunks';
@@ -38,7 +38,10 @@ export const ChonkyBusinessLogicInner = React.memo(
       reduxActions.setSelectionDisabled,
       getValueOrFallback(props.disableSelection, defaultConfig.disableSelection, 'boolean'),
     );
-    useDTE(thunkActivateSortAction, getValueOrFallback(props.defaultSortActionId, defaultConfig.defaultSortActionId));
+    useDTE(
+      thunkUpdateDefaultSortActionId,
+      getValueOrFallback(props.defaultSortActionId, defaultConfig.defaultSortActionId),
+    );
     useDTE(
       thunkUpdateDefaultFileViewActionId,
       getValueOrFallback(props.defaultFileViewActionId, defaultConfig.defaultFileViewActionId, 'string'),

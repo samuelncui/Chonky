@@ -5,7 +5,14 @@ import { ExcludeKeys, Nullable } from 'tsdef';
 
 import { EssentialActions } from '../action-definitions/essential';
 import { ChonkyActions } from '../action-definitions/index';
-import { selectCurrentFolder, selectFolderChain, selectInstanceId, selectSelectedFiles } from '../redux/selectors';
+import {
+  getIsFileSelected,
+  selectCurrentFolder,
+  selectFolderChain,
+  selectInstanceId,
+  selectIsDnDDisabled,
+  selectSelectedFiles,
+} from '../redux/selectors';
 import { useChonkyDispatch, useChonkyReduxStore, useChonkySelector } from '../redux/store';
 import { thunkRequestFileAction } from '../redux/thunks/dispatchers.thunks';
 import { StartDragNDropPayload } from '../types/action-payloads.types';
@@ -19,6 +26,7 @@ import { useInstanceVariable } from './hooks-helpers';
 export const useFileDrag = (file: Nullable<FileData>) => {
   // Prepare the dnd payload
   const store = useChonkyReduxStore();
+  const dndDisabled = useChonkySelector(selectIsDnDDisabled);
   const fileRef = useInstanceVariable(file);
   const getDndStartPayload = useCallback<() => StartDragNDropPayload>(() => {
     const reduxState = store.getState();
@@ -28,13 +36,15 @@ export const useFileDrag = (file: Nullable<FileData>) => {
       // We force non-null type below because by convention, if drag & drop for
       // this file was possible, it must have been non-null.
       draggedFile: fileRef.current!,
-      selectedFiles: selectSelectedFiles(reduxState),
+      selectedFiles: getIsFileSelected(reduxState, fileRef.current!)
+        ? selectSelectedFiles(reduxState).filter(FileHelper.isDraggable)
+        : [],
     };
   }, [store, fileRef]);
 
   // For drag source
   const dispatch = useChonkyDispatch();
-  const canDrag = useCallback(() => FileHelper.isDraggable(fileRef.current), [fileRef]);
+  const canDrag = useCallback(() => !dndDisabled && FileHelper.isDraggable(fileRef.current), [dndDisabled, fileRef]);
   const onDragStart = useCallback((): ChonkyDndFileEntryItem => {
     const item: ChonkyDndFileEntryItem = {
       type: ChonkyDndFileEntryType,
@@ -46,7 +56,12 @@ export const useFileDrag = (file: Nullable<FileData>) => {
   const onDragEnd = useCallback(
     (item: ChonkyDndFileEntryItem, monitor: DragSourceMonitor) => {
       const dropResult = monitor.getDropResult() as ChonkyDndDropResult;
-      if (!FileHelper.isDraggable(item.payload.draggedFile) || !dropResult || !dropResult.dropTarget) {
+      if (
+        selectIsDnDDisabled(store.getState()) ||
+        !FileHelper.isDraggable(item.payload.draggedFile) ||
+        !dropResult ||
+        !dropResult.dropTarget
+      ) {
         return;
       }
 
@@ -58,7 +73,7 @@ export const useFileDrag = (file: Nullable<FileData>) => {
         }),
       );
     },
-    [dispatch],
+    [dispatch, store],
   );
 
   // Create refs for react-dnd hooks
@@ -88,6 +103,7 @@ interface UseFileDropParams {
 }
 
 export const useFileDrop = ({ file, forceDisableDrop, includeChildrenDrops }: UseFileDropParams) => {
+  const dndDisabled = useChonkySelector(selectIsDnDDisabled);
   const folderChainRef = useInstanceVariable(useChonkySelector(selectFolderChain));
   const onDrop = useCallback(
     (_item: ChonkyDndFileEntryItem, monitor: DropTargetMonitor) => {
@@ -102,6 +118,7 @@ export const useFileDrop = ({ file, forceDisableDrop, includeChildrenDrops }: Us
   const canDrop = useCallback(
     (item: ChonkyDndFileEntryItem, monitor: DropTargetMonitor) => {
       if (
+        dndDisabled ||
         forceDisableDrop ||
         !FileHelper.isDroppable(file) ||
         (!monitor.isOver({ shallow: true }) && !includeChildrenDrops)
@@ -127,7 +144,7 @@ export const useFileDrop = ({ file, forceDisableDrop, includeChildrenDrops }: Us
       // (which is a no-op).
       return file.id !== source?.id;
     },
-    [forceDisableDrop, file, includeChildrenDrops, folderChainRef],
+    [dndDisabled, forceDisableDrop, file, includeChildrenDrops, folderChainRef],
   );
   const collect = useCallback(
     (monitor: DropTargetMonitor) => ({
@@ -166,10 +183,16 @@ export const useFileEntryDnD = (file: Nullable<FileData>) => {
 
 export const useDndHoverOpen = (file: Nullable<FileData>, dndState: DndEntryState) => {
   const dispatch = useChonkyDispatch();
+  const dndDisabled = useChonkySelector(selectIsDnDDisabled);
   const currentFolderRef = useInstanceVariable(useChonkySelector(selectCurrentFolder));
   useEffect(() => {
     let timeout: Nullable<any> = null;
-    if (dndState.dndIsOver && FileHelper.isDndOpenable(file) && file.id !== currentFolderRef.current?.id) {
+    if (
+      !dndDisabled &&
+      dndState.dndIsOver &&
+      FileHelper.isDndOpenable(file) &&
+      file.id !== currentFolderRef.current?.id
+    ) {
       timeout = setTimeout(
         () =>
           dispatch(
@@ -185,5 +208,5 @@ export const useDndHoverOpen = (file: Nullable<FileData>, dndState: DndEntryStat
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [dispatch, file, dndState.dndIsOver, currentFolderRef]);
+  }, [dispatch, dndDisabled, file, dndState.dndIsOver, currentFolderRef]);
 };

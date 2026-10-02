@@ -146,7 +146,9 @@ const reducers = {
   },
   selectFiles(state: RootState, action: PayloadAction<{ fileIds: string[]; reset: boolean }>) {
     if (state.disableSelection) return;
-    const firstId = action.payload.fileIds.find((id) => FileHelper.isSelectable(state.fileMap[id]));
+    const firstId = action.payload.fileIds.find(
+      (id) => FileHelper.isSelectable(state.fileMap[id]) && (!state.grouping || !!state.fileGroupMap[id]),
+    );
     if (firstId) activateFileGroup(state, firstId);
     if (action.payload.reset) state.selectionMap = {};
     action.payload.fileIds
@@ -184,7 +186,7 @@ const reducers = {
   setFileViewConfig(state: RootState, action: PayloadAction<FileViewConfig>) {
     state.fileViewConfig = action.payload;
   },
-  setSort(state: RootState, action: PayloadAction<{ actionId: string; order: SortOrder }>) {
+  setSort(state: RootState, action: PayloadAction<{ actionId: Nullable<string>; order: SortOrder }>) {
     state.sortActionId = action.payload.actionId;
     state.sortOrder = action.payload.order;
   },

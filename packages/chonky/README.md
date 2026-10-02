@@ -38,6 +38,23 @@ children, and action regions on one row:
 <FileToolbar layout="inline" />
 ```
 
+Sort by name starts ascending; Sort by size and Sort by date start descending.
+Selecting the active sort action toggles its direction. Custom sort actions start
+ascending unless they set `initialSortOrder: SortOrder.DESC`.
+Invalid modification dates are treated as missing for display and sorting.
+
+Enter, including keypad Enter, opens the focused openable file when selection is
+empty; otherwise, the default Open selection action opens the openable selection.
+
+`disableDragAndDrop` prevents drag starts and resulting moves when a shared DnD
+provider is supplied, including moves from a drag started before disabling it.
+Dragging a selected file moves only draggable members of the selection;
+selected files marked `draggable: false` stay in place.
+
+An action in `fileActions` with a built-in action ID replaces that action's
+definition. Requests from browser controls, internal effects, and refs honor
+the registered definition, including its effect and visibility rules.
+
 Use a browser ref when an external result needs to be selected and scrolled
 into view:
 
@@ -60,14 +77,15 @@ export function RevealableBrowser() {
 displayed and selectable. Otherwise, the current selection and viewport remain
 unchanged.
 
-See the [repository](https://github.com/samuelncui/Chonky) for the runnable
-example and development instructions.
+See the [live demo](https://samuelncui.github.io/Chonky/) and the
+[repository](https://github.com/samuelncui/Chonky) for the runnable example
+and development instructions.
 
 ## License
 
 MIT
 
-## Presentation extensions (unreleased)
+## Presentation extensions
 
 - `FileData.status` supplies an accessible label, color and optional supplemental marker;
   `FileData.details` adds contextual lines. Lists with details measure row heights.
@@ -83,7 +101,7 @@ MIT
 
 These options do not require application-specific data, services or filesystem operations.
 
-## Grouped lists (unreleased)
+## Grouped lists
 
 Pass `grouping` to `FileBrowser` (or `FullFileBrowser`) to render `FileList` as
 one measured, virtualized list with group headers and ordinary file rows:

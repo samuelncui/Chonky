@@ -147,7 +147,7 @@ export const EssentialActions = {
         // We only dispatch the Open Files action here when the selection is
         // empty. Otherwise, `Enter` key presses are handled by the
         // hotkey manager for the Open Files action.
-        if (selectSelectionSize(getReduxState()) === 0) {
+        if (selectSelectionSize(getReduxState()) === 0 && FileHelper.isOpenable(payload.file)) {
           reduxDispatch(
             thunkRequestFileAction(ChonkyActions.OpenFiles, {
               targetFile: payload.file,
@@ -196,14 +196,10 @@ export const EssentialActions = {
       id: 'end_drag_n_drop',
       __payloadType: {} as EndDragNDropPayload,
     } as const,
-    ({ payload, reduxDispatch, getReduxState }) => {
-      if (getIsFileSelected(getReduxState(), payload.destination)) {
-        // Can't drop a selection into itself
-        return;
-      }
-
+    ({ payload, reduxDispatch }) => {
       const { draggedFile, selectedFiles } = payload as EndDragNDropPayload;
       const droppedFiles = selectedFiles.length > 0 ? selectedFiles : [draggedFile];
+      if (droppedFiles.some((file) => file.id === payload.destination.id)) return;
       reduxDispatch(
         thunkRequestFileAction(ChonkyActions.MoveFiles, {
           ...payload,

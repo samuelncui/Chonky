@@ -8,6 +8,8 @@ import { reduxActions } from '../reducers';
 import { getFileActionState, selectExternalFileActionHandler, selectFileActionMap } from '../selectors';
 import { thunkActivateSortAction, thunkApplySelectionTransform } from './file-actions.thunks';
 
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 /**
  * Thunk that dispatches actions to the external (user-provided) action handler.
  */
@@ -20,9 +22,13 @@ export const thunkDispatchFileAction =
     const externalFileActionHandler = selectExternalFileActionHandler(state);
     if (action) {
       if (externalFileActionHandler) {
-        Promise.resolve(externalFileActionHandler(data)).catch((error) =>
-          Logger.error(`User-defined file action handler threw an error: ${error.message}`),
-        );
+        const reportError = (error: unknown) =>
+          Logger.error(`User-defined file action handler threw an error: ${errorMessage(error)}`);
+        try {
+          Promise.resolve(externalFileActionHandler(data)).catch(reportError);
+        } catch (error) {
+          reportError(error);
+        }
       }
     } else {
       Logger.warn(
@@ -42,8 +48,11 @@ export const thunkRequestFileAction =
   (dispatch, getState) => {
     Logger.debug(`FILE ACTION REQUEST: [${action.id}]`, 'action:', action, 'payload:', payload);
     const state = getState();
+    const registeredAction = selectFileActionMap(state)[action.id];
 
-    if (!selectFileActionMap(state)[action.id]) {
+    if (registeredAction) {
+      action = registeredAction as Action;
+    } else {
       Logger.warn(
         `The action "${action.id}" was requested, but it is not registered. The ` +
           `action will still be dispatched, but this might indicate a bug in ` +
@@ -102,8 +111,7 @@ export const thunkRequestFileAction =
           getReduxState: getState,
         }) as MaybePromise<boolean | undefined>;
       } catch (err) {
-        const error = err as Error;
-        Logger.error(`User-defined effect function for action ${action.id} threw an ` + `error: ${error.message}`);
+        Logger.error(`User-defined effect function for action ${action.id} threw an ` + `error: ${errorMessage(err)}`);
       }
     }
 
@@ -122,7 +130,7 @@ export const thunkRequestFileAction =
       .catch((error) => {
         Logger.error(
           `User-defined effect function for action ${action.id} returned a ` +
-            `promise that was rejected: ${error.message}`,
+            `promise that was rejected: ${errorMessage(error)}`,
         );
         const data: FileActionData<Action> = {
           id: action.id,

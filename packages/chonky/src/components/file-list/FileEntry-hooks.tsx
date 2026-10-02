@@ -80,11 +80,8 @@ export const useModifierIconComponents = (file: Nullable<FileData>) => {
 };
 
 const _extname = (fileName: string) => {
-  const parts = fileName.split('.');
-  if (parts.length) {
-    return `.${parts[parts.length - 1]}`;
-  }
-  return '';
+  const index = fileName.lastIndexOf('.');
+  return index > 0 ? fileName.substring(index) : '';
 };
 
 export const useFileNameComponent = (file: Nullable<FileData>) => {
@@ -132,17 +129,21 @@ export const useThumbnailUrl = (file: Nullable<FileData>) => {
             if (loadingCancelled) return;
             setThumbnailLoading(false);
 
-            if (thumbnailUrl && typeof thumbnailUrl === 'string') {
-              setThumbnailUrl(thumbnailUrl);
-            }
+            setThumbnailUrl(typeof thumbnailUrl === 'string' ? thumbnailUrl : null);
           })
           .catch((error) => {
             if (!loadingCancelled) setThumbnailLoading(false);
-            Logger.error(`User-defined "thumbnailGenerator" handler threw an error: ${error.message}`);
+            Logger.error(
+              `User-defined "thumbnailGenerator" handler threw an error: ${error instanceof Error ? error.message : String(error)}`,
+            );
           });
-      } else if (file.thumbnailUrl) {
-        setThumbnailUrl(file.thumbnailUrl);
+      } else {
+        setThumbnailLoading(false);
+        setThumbnailUrl(file.thumbnailUrl ?? null);
       }
+    } else {
+      setThumbnailLoading(false);
+      setThumbnailUrl(null);
     }
 
     return () => {

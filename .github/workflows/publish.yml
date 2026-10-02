@@ -20,7 +20,9 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
+      - run: pnpm e2e
       - name: Verify release version
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}

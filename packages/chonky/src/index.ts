@@ -37,6 +37,7 @@ export type {
 } from './types/action-handler.types';
 export type { ChonkyActionUnion } from './types/file-browser.types';
 export { ChonkyIconName } from './types/icons.types';
+export { SortOrder } from './types/sort.types';
 export type ChonkyIconProps = import('./types/icons.types').ChonkyIconProps;
 export type { FileBrowserHandle, FileBrowserProps } from './types/file-browser.types';
 export { FileViewMode } from './types/file-view.types';

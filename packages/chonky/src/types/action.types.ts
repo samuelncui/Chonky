@@ -5,7 +5,7 @@ import { FileViewConfig } from './file-view.types';
 import { FileFilter, FileMap } from './file.types';
 import { ChonkyIconName } from './icons.types';
 import { ChonkyDispatch, RootState } from './redux.types';
-import { FileSortKeySelector } from './sort.types';
+import { FileSortKeySelector, SortOrder } from './sort.types';
 
 export interface FileAction {
   /**
@@ -44,6 +44,8 @@ export interface FileAction {
    * between Ascending and Descending orders.
    */
   sortKeySelector?: FileSortKeySelector;
+  /** Initial direction when this sort action is selected after a different action. Defaults to ascending. */
+  initialSortOrder?: SortOrder;
   /**
    * When `fileViewConfig` is specified, triggering this action will apply the
    * provided config to Chonky's file view.

@@ -35,6 +35,12 @@ export const HotkeyListener: React.FC<HotkeyListenerProps> = React.memo((props) 
     const hotkeyCallback = (event: KeyboardEvent) => {
       if (!browserRef.current?.contains(document.activeElement)) return;
       if (
+        (event.key === 'Enter' || event.key === ' ') &&
+        event.target instanceof Element &&
+        event.target.closest('button, a[href], [role="button"], [role="menuitem"]')
+      )
+        return;
+      if (
         sparse &&
         (fileAction.id === ChonkyActions.FocusSearchInput.id || fileAction.id === ChonkyActions.ToggleHiddenFiles.id)
       )

@@ -6,7 +6,12 @@ export const FileEntryStatus = ({ status, reserve = false }: { status?: FileData
   if (!status)
     return reserve ? <span aria-hidden="true" data-chonky-status-slot style={{ flex: '0 0 28px', width: 28 }} /> : null;
   return (
-    <Tooltip title={status.label} placement="left" arrow>
+    <Tooltip
+      title={status.marker ? `${status.label}: ${status.marker.label}` : status.label}
+      placement="left"
+      arrow
+      describeChild
+    >
       <span
         role="img"
         aria-label={status.label}

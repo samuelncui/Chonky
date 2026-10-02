@@ -9,6 +9,7 @@ import {
   FileList,
   FileNavbar,
   FileToolbar,
+  GroupedFileList,
   type FileAction,
   type FileActionState,
   type FileBrowserHandle,
@@ -92,6 +93,8 @@ export const DuplicatesDemo = () => {
   const browser = useRef<FileBrowserHandle>(null);
   const [dataset, setDataset] = useState(sampleDataset);
   const [mode, setMode] = useState<'continuous' | 'single'>('continuous');
+  const [api, setApi] = useState<'grouping' | 'loaded'>('grouping');
+  const [loadedCopies, setLoadedCopies] = useState(1);
   const fileActions = useMemo(
     () => [
       ...actions,
@@ -114,6 +117,8 @@ export const DuplicatesDemo = () => {
   const [selection, setSelection] = useState<string[]>([]);
   const [result, setResult] = useState('Select files in a group to get started.');
   const [generation, setGeneration] = useState(0);
+  const activeGroup = dataset.groups.find((group) => group.id === activeGroupId);
+  const loadedFiles = dataset.files.filter((file) => activeGroup?.fileIds.slice(0, loadedCopies).includes(file.id));
   const grouping = useMemo<FileGrouping>(
     () => ({
       groups: dataset.groups,
@@ -132,6 +137,12 @@ export const DuplicatesDemo = () => {
     }
     if (data.id === ChonkyActions.ChangeSelection.id) {
       setSelection([...data.payload.selection]);
+      return;
+    }
+    if (data.id === ChonkyActions.OpenFiles.id) {
+      setResult(
+        `OpenFiles event: ${(data.payload.files as FileData[]).map((file) => file.name).join(', ')}. The caller supplies file content.`,
+      );
       return;
     }
     if (data.id !== keepAction.id && data.id !== deleteAction.id) return;
@@ -160,44 +171,78 @@ export const DuplicatesDemo = () => {
     setDataset(next);
     setActiveGroupId(undefined);
     setSelection([]);
+    setLoadedCopies(1);
+    setMode('continuous');
     setResult('Select files in a group to get started.');
     setGeneration((value) => value + 1);
   };
 
   return (
-    <main style={{ fontFamily: 'sans-serif', maxWidth: 1200, margin: '0 auto', padding: 24 }}>
-      <a href="/" style={{ color: '#4263a6', fontSize: 13 }}>
-        ← All examples
-      </a>
-      <h1 style={{ margin: '16px 0 8px', fontSize: 26 }}>Identical files</h1>
-      <p style={{ margin: '0 0 20px', color: '#5c6573', lineHeight: 1.6 }}>
+    <section aria-labelledby="duplicates-title">
+      <h1 id="duplicates-title">Identical files</h1>
+      <p className="demo-description">
         Compare copies, keep one, or delete a selection. Changes affect demo data only.
       </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-        <button type="button" onClick={() => load(sampleDataset())}>
+      <div className="demo-controls">
+        <button className="demo-button" type="button" onClick={() => load(sampleDataset())}>
           Reset demo
         </button>
-        <button type="button" onClick={() => load(largeDataset())}>
+        <button
+          className="demo-button"
+          type="button"
+          onClick={() => {
+            setApi('grouping');
+            load(largeDataset());
+          }}
+        >
           Load 1,000 groups
         </button>
-        <button type="button" onClick={() => browser.current?.revealFile(dataset.files[dataset.files.length - 1]?.id)}>
+        <button
+          className="demo-button"
+          type="button"
+          disabled={api === 'loaded' || mode === 'single' || !dataset.files.length}
+          onClick={() => browser.current?.revealFile(dataset.files[dataset.files.length - 1]?.id)}
+        >
           Reveal last file
         </button>
-        <span style={{ marginLeft: 'auto', fontSize: 14, color: '#5c6573' }}>
+        <label>
+          Grouping API{' '}
+          <select
+            value={api}
+            onChange={(event) => {
+              setApi(event.target.value as typeof api);
+              setActiveGroupId(undefined);
+              setLoadedCopies(1);
+              setSelection([]);
+              setGeneration((value) => value + 1);
+            }}
+          >
+            <option value="grouping">FileBrowser.grouping</option>
+            <option value="loaded">GroupedFileList (loaded group)</option>
+          </select>
+        </label>
+      </div>
+      <div className="demo-stats" aria-live="polite">
+        <span>
           <output data-testid="group-count">{dataset.groups.length}</output> groups ·{' '}
           <output data-testid="duplicate-file-count">{dataset.files.length}</output> files ·{' '}
           <output data-testid="duplicate-selection-count">{selection.length}</output> selected
         </span>
       </div>
-      <div style={{ height: 'min(680px, 68vh)', minHeight: 320 }}>
+      <p className="demo-help">
+        {api === 'grouping'
+          ? 'Options switches between continuous groups and one group at a time. Keep/delete acts on full group membership, even when Filter hides copies. Reveal requires the target group to be expanded and the file unfiltered.'
+          : 'GroupedFileList is controlled by the caller: only the active group’s loaded copies are supplied to FileBrowser. Load next copy demonstrates the afterFiles extension; switching groups clears selection.'}
+      </p>
+      <div className="demo-browser demo-browser-tall">
         <FileBrowser
           key={generation}
           ref={browser}
           instanceId="duplicates"
-          files={dataset.files}
-          grouping={grouping}
+          files={api === 'grouping' ? dataset.files : loadedFiles}
+          grouping={api === 'grouping' ? grouping : undefined}
           iconComponent={ChonkyIconFA}
-          fileActions={fileActions}
+          fileActions={api === 'grouping' ? fileActions : undefined}
           onFileAction={onAction}
           disableDragAndDrop
           defaultSortActionId={null}
@@ -205,16 +250,59 @@ export const DuplicatesDemo = () => {
         >
           <FileNavbar />
           <FileToolbar />
-          <FileList emptyPlaceholder={<p style={{ padding: 20 }}>No files to display.</p>} />
+          {api === 'grouping' ? (
+            <FileList
+              emptyPlaceholder={
+                <div className="demo-empty">
+                  <p>No files to display.</p>
+                  <button className="demo-button" onClick={() => load(sampleDataset())}>
+                    Restore sample copies
+                  </button>
+                </div>
+              }
+            />
+          ) : (
+            <div className="demo-legacy-list">
+              <GroupedFileList
+                groups={dataset.groups.map((group) => ({
+                  id: group.id,
+                  name: group.name,
+                  description: group.description,
+                  badge: `${group.fileIds.length} copies`,
+                }))}
+                activeGroupId={activeGroupId}
+                onGroupChange={(id) => {
+                  setActiveGroupId(id);
+                  setLoadedCopies(1);
+                }}
+                beforeFiles={
+                  <p className="demo-help">
+                    Caller loaded <output data-testid="loaded-copies">{loadedFiles.length}</output> of{' '}
+                    {activeGroup?.fileIds.length} copies.
+                  </p>
+                }
+                afterFiles={
+                  <button
+                    className="demo-button"
+                    disabled={loadedCopies >= (activeGroup?.fileIds.length ?? 0)}
+                    onClick={() => setLoadedCopies((value) => value + 1)}
+                  >
+                    Load next copy
+                  </button>
+                }
+              />
+            </div>
+          )}
           <FileContextMenu />
         </FileBrowser>
       </div>
-      <p aria-live="polite" data-testid="duplicate-result" style={{ fontSize: 14, marginBottom: 8 }}>
+      <p className="demo-result" aria-live="polite" data-testid="duplicate-result">
         {result}
       </p>
-      <p style={{ fontSize: 12, color: '#5c6573', margin: 0 }}>
+      <p className="demo-help">
         Ctrl / ⌘ adds to the selection. Shift selects a range. Choosing another group clears the previous selection.
+        Open selection reports its event; fixture file contents are not bundled.
       </p>
-    </main>
+    </section>
   );
 };

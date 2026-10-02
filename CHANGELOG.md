@@ -2,6 +2,26 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
+## 0.3.5 - 2026-10-02
+
+- Start size and date sorting in descending order; switching to a different sort
+  action uses its initial direction, while selecting the active action reverses it.
+- Let custom sort actions set `initialSortOrder` without changing their existing
+  ascending default.
+- Keep default sorting stable in React Strict Mode, clear it when the default
+  becomes null, compare valid date strings and Date objects by their timestamps,
+  and treat invalid dates as missing.
+- Fix selected-file and keypad keyboard opening, unselected drag payloads, disabled drag
+  sources and drop targets, grouped ref selection, stale thumbnails, and extensionless names.
+- Exclude non-draggable selected files from drag and move payloads.
+- Report callback failures without repeating the operation, and expose supplemental
+  status marker labels to assistive technology.
+- Honor registered action overrides when opening files through internal requests.
+- Avoid duplicate opens when keyboard activation of a menu item restores browser focus.
+- Add a navigable static demo covering file browsing, grouped files, sparse paging,
+  and presentation extensions, with GitHub Pages deployment and browser checks
+  against the production project path.
+
 ## 0.3.4 - 2026-09-25
 
 - Add sparse continuous grouping to `FileBrowser.grouping` for caller-managed

@@ -12,6 +12,7 @@
   "scripts": {
     "build": "pnpm --recursive --if-present run build",
     "e2e": "playwright test",
+    "e2e:pages": "pnpm --filter @samuelncui/chonky-example build --base=/Chonky/ && playwright test --config=playwright.pages.config.ts",
     "typecheck": "pnpm --recursive --if-present run typecheck",
     "test": "pnpm --recursive --if-present run test",
     "lint": "eslint .",

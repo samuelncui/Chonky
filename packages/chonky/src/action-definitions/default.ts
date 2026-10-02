@@ -6,6 +6,7 @@ import { FileSelectionTransform } from '../types/action.types';
 import { FileViewMode } from '../types/file-view.types';
 import { FileData } from '../types/file.types';
 import { ChonkyIconName } from '../types/icons.types';
+import { SortOrder } from '../types/sort.types';
 import { FileHelper } from '../util/file-helper';
 import { defineFileAction } from '../util/helpers';
 import { EssentialActions } from './essential';
@@ -148,6 +149,7 @@ export const DefaultActions = {
   SortFilesBySize: defineFileAction({
     id: 'sort_files_by_size',
     sortKeySelector: (file: Nullable<FileData>) => (file ? file.size : undefined),
+    initialSortOrder: SortOrder.DESC,
     button: {
       name: 'Sort by size',
       toolbar: true,
@@ -159,7 +161,8 @@ export const DefaultActions = {
    */
   SortFilesByDate: defineFileAction({
     id: 'sort_files_by_date',
-    sortKeySelector: (file: Nullable<FileData>) => (file ? file.modDate : undefined),
+    sortKeySelector: (file: Nullable<FileData>) => FileHelper.getModDate(file)?.getTime(),
+    initialSortOrder: SortOrder.DESC,
     button: {
       name: 'Sort by date',
       toolbar: true,

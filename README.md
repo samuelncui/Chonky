@@ -64,6 +64,7 @@ export function MyComponent() {
 
 See the runnable [example](./packages/chonky/example) and the
 [`@samuelncui/chonky` package documentation](./packages/chonky/README.md).
+Try the [live demo](https://samuelncui.github.io/Chonky/).
 The upstream [Chonky documentation](https://chonky.io/) remains useful for
 general concepts, but APIs and compatibility may differ from this fork.
 
@@ -78,15 +79,17 @@ pnpm build
 pnpm --filter @samuelncui/chonky-example dev
 ```
 
-Open [the example](http://127.0.0.1:4173/) or the
-[identical-files demo](http://127.0.0.1:4173/?example=duplicates).
-The latter offers continuous/single-group layouts in the Options menu, caller-defined keep/delete
-actions, resettable in-memory fixtures, and 1,000 groups containing 5,000 files.
-See [grouped-list integration](./packages/chonky/README.md#grouped-lists-unreleased)
+Open [the demo](http://127.0.0.1:4173/). Its navigation covers ordinary files,
+grouped files, sparse paging, and presentation extensions. All fixtures and
+operations stay in browser memory and can be reset.
+See [grouped-list integration](./packages/chonky/README.md#grouped-lists)
 for the API and selection semantics. Rebuild the packages after library changes;
-the example consumes their built exports.
+the demo consumes their built exports.
 
 Run `pnpm check` and `pnpm e2e` for static, unit and browser verification.
+Run `pnpm e2e:pages` to build and test the static demo under its deployed
+`/Chonky/` path. The Demo workflow deploys that tested output to GitHub Pages
+after a push to `master`, or a manual dispatch.
 
 ## License
 

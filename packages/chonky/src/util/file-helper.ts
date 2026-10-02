@@ -67,7 +67,7 @@ export class FileHelper {
     if (typeof maybeDate === 'string' || typeof maybeDate === 'number') {
       // We allow users to provide string and numerical representations of dates.
       try {
-        return new Date(maybeDate);
+        maybeDate = new Date(maybeDate);
       } catch (error) {
         const err = error as Error;
         Logger.error(
