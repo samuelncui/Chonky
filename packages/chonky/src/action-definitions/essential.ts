@@ -144,9 +144,13 @@ export const EssentialActions = {
         }),
       );
       if (payload.enterKey) {
-        // We only dispatch the Open Files action here when the selection is
-        // empty. Otherwise, `Enter` key presses are handled by the
-        // hotkey manager for the Open Files action.
+        // Row keys settle here, including keys from the native selection checkbox.
+        if (selectSelectionSize(getReduxState()) > 0) {
+          if (getReduxState().fileActionMap[ChonkyActions.OpenSelection.id]) {
+            reduxDispatch(thunkRequestFileAction(ChonkyActions.OpenSelection, undefined));
+          }
+          return;
+        }
         if (selectSelectionSize(getReduxState()) === 0 && FileHelper.isOpenable(payload.file)) {
           reduxDispatch(
             thunkRequestFileAction(ChonkyActions.OpenFiles, {

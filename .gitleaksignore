@@ -1,0 +1,6 @@
+# Approved history-only exceptions; see CONTRIBUTING.md, Release SOP.
+# Upstream S3 Demo credentials were already public before v0.3.5 and are absent
+# from current source. The upstream comment describes read-only Demo access;
+# validity and permissions have not been checked. Preserve published history.
+a1fa2f2cca413fb1b8a75c4e2700868696dcba29:packages/storybook/src/demos/S3Browser.tsx:aws-access-token:30
+a1fa2f2cca413fb1b8a75c4e2700868696dcba29:packages/storybook/src/demos/S3Browser.tsx:generic-api-key:31

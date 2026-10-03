@@ -57,18 +57,20 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
 
   const list = useMemo(() => {
     if (loading === 'initial') return null;
+    const emptyList = (
+      <div className={classes.emptyListContainer}>
+        {emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />}
+      </div>
+    );
     if (grouping?.sparse) {
-      return grouping.sparse.totalCount > 0 ? (
-        <SparseGroupedListContainer onScroll={onScroll} />
-      ) : (
-        (emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />)
-      );
+      return grouping.sparse.totalCount > 0 ? <SparseGroupedListContainer onScroll={onScroll} /> : emptyList;
     }
     if (grouping && groups.length) return <GroupedListContainer onScroll={onScroll} />;
-    if (displayFileIds.length === 0) return emptyPlaceholder ?? <FileListEmpty height={viewConfig.entryHeight} />;
+    if (displayFileIds.length === 0) return emptyList;
     if (viewConfig.mode === FileViewMode.List) return <ListContainer onScroll={onScroll} />;
     return <GridContainer onScroll={onScroll} />;
   }, [
+    classes.emptyListContainer,
     displayFileIds.length,
     emptyPlaceholder,
     loading,
@@ -153,6 +155,10 @@ const useLocalStyles = makeLocalChonkyStyles((theme) => ({
 }));
 
 const useStyles = makeGlobalChonkyStyles(() => ({
+  emptyListContainer: {
+    height: '100%',
+    overflow: 'auto',
+  },
   initialLoading: {
     height: '100%',
     display: 'grid',

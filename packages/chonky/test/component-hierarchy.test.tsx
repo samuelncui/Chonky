@@ -1,5 +1,5 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
-import React, { UIEvent } from 'react';
+import React from 'react';
 import { vi } from 'vitest';
 
 import {
@@ -12,10 +12,7 @@ import {
   type ChonkyIconProps,
 } from '../src';
 import { FileBrowser } from '../src/components/external/FileBrowser';
-import { FileContextMenu } from '../src/components/external/FileContextMenu';
-import { FileNavbar } from '../src/components/external/FileNavbar';
 import { FileToolbar } from '../src/components/external/FileToolbar';
-import { FileList } from '../src/components/file-list/FileList';
 import { ListEntry } from '../src/components/file-list/ListEntry';
 import { reduxActions } from '../src/redux/reducers';
 import { useChonkyDispatch } from '../src/redux/store';
@@ -45,22 +42,20 @@ describe('FileBrowser', () => {
     { id: 'jre', name: 'My Folder' },
   ];
 
-  const onScrollEventHandler = (e: UIEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-  };
-
-  it('renders without crashing when using FullFileBrowser', () => {
-    render(<FullFileBrowser files={files} />);
-  });
-  it('renders without crashing when using individual components', () => {
-    render(
-      <FileBrowser files={files}>
-        <FileNavbar />
-        <FileToolbar />
-        <FileList onScroll={onScrollEventHandler} />
-        <FileContextMenu />
-      </FileBrowser>,
+  it('composes the toolbar and file list, adding breadcrumbs only when a folder chain is supplied', () => {
+    const { container, getByRole, queryByRole, rerender } = render(
+      <FullFileBrowser files={files} folderChain={[{ id: 'root', name: 'Library', isDir: true }]} />,
     );
+
+    expect(getByRole('button', { name: 'Library' })).toBeTruthy();
+    expect(getByRole('button', { name: 'Filter' })).toBeTruthy();
+    expect(getByRole('button', { name: 'Options' })).toBeTruthy();
+    expect(container.querySelector('.chonky-fileListWrapper[role="list"]')).toBeTruthy();
+
+    rerender(<FullFileBrowser files={files} />);
+    expect(queryByRole('button', { name: 'Library' })).toBeNull();
+    expect(getByRole('button', { name: 'Filter' })).toBeTruthy();
+    expect(container.querySelector('.chonky-fileListWrapper[role="list"]')).toBeTruthy();
   });
 
   it('reports selection changes through the store subscription', async () => {

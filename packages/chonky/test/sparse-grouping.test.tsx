@@ -245,6 +245,86 @@ describe('sparse grouped file lists', () => {
     expect(selectSelectedFileIds(store.getState())).toEqual(['near', 'far']);
   });
 
+  it.each([false, true])(
+    'preserves selection when another sparse group collapses or expands (controlled=%s)',
+    async (controlled) => {
+      const ref = createRef<FileBrowserHandle>();
+      const onFileAction = vi.fn();
+      const onGroupChange = vi.fn();
+      const onToggleGroup = vi.fn();
+      const onRangeChanged = vi.fn();
+      const far = { id: 'far-group', name: 'Far group', memberCount: 1 };
+      const Browser = () => {
+        const [expanded, setExpanded] = useState(true);
+        const [activeGroupId, setActiveGroupId] = useState<string>();
+        const near = { id: 'near-group', name: 'Near group', memberCount: 1, expanded };
+        const rows: SparseFileGrouping['sparse']['rows'] = [{ index: 0, kind: 'group', group: near }];
+        if (expanded) rows.push({ index: 1, kind: 'file', group: near, fileId: 'near' });
+        rows.push({ index: rows.length, kind: 'group', group: far });
+        rows.push({ index: rows.length, kind: 'file', group: far, fileId: 'far' });
+        return (
+          <FileBrowser
+            ref={ref}
+            files={files}
+            grouping={{
+              mode: 'continuous',
+              activeGroupId: controlled ? activeGroupId : undefined,
+              onGroupChange: (id) => {
+                onGroupChange(id);
+                if (controlled) setActiveGroupId(id);
+              },
+              sparse: {
+                totalCount: rows.length,
+                rows,
+                onRangeChanged,
+                onToggleGroup: (id) => {
+                  onToggleGroup(id);
+                  setExpanded((value) => !value);
+                },
+              },
+            }}
+            onFileAction={onFileAction}
+            disableDragAndDrop
+          >
+            <FileToolbar />
+            <FileList />
+          </FileBrowser>
+        );
+      };
+      render(<Browser />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole('checkbox', { name: 'Select Far' }));
+      });
+      expect(ref.current?.getFileSelection()).toEqual(new Set(['far']));
+      expect(onGroupChange).toHaveBeenLastCalledWith('far-group');
+      onGroupChange.mockClear();
+      onFileAction.mockClear();
+
+      for (const expanded of [false, true]) {
+        await act(async () => {
+          fireEvent.click(screen.getByRole('button', { name: 'Near group' }));
+        });
+        expect(screen.getByRole('button', { name: 'Near group' }).getAttribute('aria-expanded')).toBe(String(expanded));
+        expect(screen.getByTestId('virtual-list').getAttribute('data-total-count')).toBe(expanded ? '4' : '3');
+        expect(onToggleGroup).toHaveBeenLastCalledWith('near-group');
+        expect(ref.current?.getFileSelection()).toEqual(new Set(['far']));
+        expect((screen.getByRole('checkbox', { name: 'Select Far' }) as HTMLInputElement).checked).toBe(true);
+        expect(screen.getByText('1 selected')).toBeTruthy();
+        expect(onGroupChange).not.toHaveBeenCalled();
+        expect(onFileAction).not.toHaveBeenCalled();
+      }
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('checkbox', { name: 'Select Far' }));
+      });
+      expect(ref.current?.getFileSelection()).toEqual(new Set());
+      expect(screen.queryByText('1 selected')).toBeNull();
+      expect(onFileAction).toHaveBeenCalledWith(
+        expect.objectContaining({ id: ChonkyActions.ChangeSelection.id, payload: { selection: new Set() } }),
+      );
+    },
+  );
+
   it('keeps header and toolbar actions scoped, then delegates collapse and clears selection', async () => {
     const ref = createRef<FileBrowserHandle>();
     const onFileAction = vi.fn();

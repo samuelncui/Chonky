@@ -43,7 +43,7 @@ export const thunkUpdateRawFileActions =
     }
 
     const fileActions = mergeFileActionsArrays(sanitizedArray, EssentialFileActions, defaultActionsToAdd);
-    const optionDefaults: any = {};
+    const optionDefaults: any = Object.create(null);
     fileActions.map((a) => (a.option ? (optionDefaults[a.option.id] = a.option.defaultValue) : null));
 
     dispatch(reduxActions.setFileActions(fileActions));
@@ -75,17 +75,17 @@ export const thunkUpdateToolbarNContextMenuItems =
 
     const toolbarItems: FileActionMenuItem[] = [];
     const toolbarGroupItems: FileActionGroup[] = [];
-    const seenToolbarGroups: SeenGroupMap = {};
+    const seenToolbarGroups: SeenGroupMap = Object.create(null);
 
     const contextMenuItems: FileActionMenuItem[] = [];
-    const seenContextMenuGroups: SeenGroupMap = {};
+    const seenContextMenuGroups: SeenGroupMap = Object.create(null);
 
     const getGroup = (itemArray: FileActionMenuItem[], seenMap: SeenGroupMap, groupName: string): FileActionGroup => {
       if (seenMap[groupName]) return seenMap[groupName];
       const group: FileActionGroup = {
         name: groupName,
-        icon: groupIcons[groupName] || null,
-        sortOrder: groupSortOrder[groupName] || -1,
+        icon: Object.hasOwn(groupIcons, groupName) ? groupIcons[groupName] : null,
+        sortOrder: Object.hasOwn(groupSortOrder, groupName) ? groupSortOrder[groupName] : -1,
         fileActionIds: [],
       };
       itemArray.push(group);

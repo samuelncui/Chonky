@@ -68,7 +68,7 @@ export type RootState = {
   hideToolbarInfo: boolean;
 
   // State to use inside effects
-  lastClick: Nullable<{ index: number; fileId: string }>;
+  lastClick: Nullable<{ index: number; fileId: string; sparseIndex?: number; groupId?: string }>;
 
   // Context menu
   contextMenuMounted: boolean;

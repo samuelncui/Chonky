@@ -20,7 +20,7 @@ import { initialRootState } from './state';
 const activateGroup = (state: RootState, id: string | undefined) => {
   if (state.activeGroupId === id) return;
   state.activeGroupId = id;
-  state.selectionMap = {};
+  state.selectionMap = Object.create(null);
   state.lastClick = null;
   state.contextMenuConfig = null;
 };
@@ -33,8 +33,17 @@ const activateFileGroup = (state: RootState, fileId: string) => {
 const reducers = {
   setGrouping(state: RootState, action: PayloadAction<FileGrouping | null>) {
     const previous = state.grouping;
+    const anchorGroup = state.lastClick ? state.fileGroupMap[state.lastClick.fileId] : undefined;
+    // Cache population/eviction preserves the anchor; a changed projection does not.
+    if (previous?.mode !== action.payload?.mode || !!previous?.sparse !== !!action.payload?.sparse)
+      state.lastClick = null;
+    if (state.lastClick && action.payload?.sparse) {
+      const anchor = state.lastClick;
+      const row = action.payload.sparse.rows.find((row) => row.kind === 'file' && row.fileId === anchor.fileId);
+      if (row && (row.index !== anchor.sparseIndex || row.group.id !== anchor.groupId)) state.lastClick = null;
+    }
     state.grouping = action.payload;
-    state.fileGroupMap = {};
+    state.fileGroupMap = Object.create(null);
     if (action.payload?.sparse) {
       for (const row of action.payload.sparse.rows) {
         if (row.kind === 'file' && !(row.fileId in state.fileGroupMap)) {
@@ -48,6 +57,8 @@ const reducers = {
         }
       }
     }
+    if (state.lastClick && !action.payload?.sparse && state.fileGroupMap[state.lastClick.fileId] !== anchorGroup)
+      state.lastClick = null;
     if (!previous || previous.activeGroupId !== action.payload?.activeGroupId) {
       activateGroup(state, action.payload?.activeGroupId);
     }
@@ -58,7 +69,7 @@ const reducers = {
     ) {
       activateGroup(state, undefined);
     }
-    if (previous?.mode !== action.payload?.mode) state.collapsedGroupIds = {};
+    if (previous?.mode !== action.payload?.mode) state.collapsedGroupIds = Object.create(null);
     for (const id of Object.keys(state.selectionMap)) {
       if (state.grouping && state.fileGroupMap[id] !== state.activeGroupId) delete state.selectionMap[id];
     }
@@ -74,9 +85,7 @@ const reducers = {
     if (!state.grouping) return;
     const id = action.payload;
     if (state.grouping.sparse) {
-      activateGroup(state, undefined);
-      state.selectionMap = {};
-      state.lastClick = null;
+      if (state.activeGroupId === id) activateGroup(state, undefined);
       return;
     }
     if (state.grouping.mode === 'single') {
@@ -85,14 +94,14 @@ const reducers = {
     }
     state.collapsedGroupIds[id] = !state.collapsedGroupIds[id];
     activateGroup(state, state.collapsedGroupIds[id] ? undefined : id);
-    state.selectionMap = {};
+    state.selectionMap = Object.create(null);
     state.lastClick = null;
   },
   setExternalFileActionHandler(state: RootState, action: PayloadAction<Nilable<GenericFileActionHandler<FileAction>>>) {
     state.externalFileActionHandler = action.payload ?? null;
   },
   setFileActions(state: RootState, action: PayloadAction<FileAction[]>) {
-    const fileActionMap: FileActionMap = {};
+    const fileActionMap: FileActionMap = Object.create(null);
     for (const fileAction of action.payload) fileActionMap[fileAction.id] = fileAction;
     const fileIds = action.payload.map((a) => a.id);
 
@@ -104,11 +113,12 @@ const reducers = {
   },
   setRawFolderChain(state: RootState, action: PayloadAction<FileArray | any>) {
     const { sanitizedArray: folderChain } = sanitizeInputArray('folderChain', action.payload);
+    if (state.folderChain.at(-1)?.id !== folderChain.at(-1)?.id) state.lastClick = null;
     state.folderChain = folderChain;
   },
   setRawFiles(state: RootState, action: PayloadAction<FileArray>) {
     const { sanitizedArray: files } = sanitizeInputArray('files', action.payload);
-    const fileMap: FileMap = {};
+    const fileMap: FileMap = Object.create(null);
     files.forEach((f) => {
       if (f) fileMap[f.id] = f;
     });
@@ -130,6 +140,7 @@ const reducers = {
     state.focusSearchInput = action.payload;
   },
   setSearchString(state: RootState, action: PayloadAction<string>) {
+    if (state.searchString !== action.payload) state.lastClick = null;
     state.searchString = action.payload;
   },
   selectAllFiles(state: RootState) {
@@ -150,7 +161,10 @@ const reducers = {
       (id) => FileHelper.isSelectable(state.fileMap[id]) && (!state.grouping || !!state.fileGroupMap[id]),
     );
     if (firstId) activateFileGroup(state, firstId);
-    if (action.payload.reset) state.selectionMap = {};
+    if (action.payload.reset) {
+      state.selectionMap = Object.create(null);
+      if (action.payload.fileIds.length === 0) state.lastClick = null;
+    }
     action.payload.fileIds
       .filter((id) => !state.grouping || (!!state.activeGroupId && state.fileGroupMap[id] === state.activeGroupId))
       .filter((id) => id && FileHelper.isSelectable(state.fileMap[id]))
@@ -161,7 +175,7 @@ const reducers = {
     activateFileGroup(state, action.payload.fileId);
     if (state.grouping && !state.activeGroupId) return;
     const oldValue = !!state.selectionMap[action.payload.fileId];
-    if (action.payload.exclusive) state.selectionMap = {};
+    if (action.payload.exclusive) state.selectionMap = Object.create(null);
     if (oldValue) delete state.selectionMap[action.payload.fileId];
     else if (FileHelper.isSelectable(state.fileMap[action.payload.fileId])) {
       state.selectionMap[action.payload.fileId] = true;
@@ -169,11 +183,12 @@ const reducers = {
   },
   clearSelection(state: RootState) {
     if (state.disableSelection) return;
-    if (Object.keys(state.selectionMap).length !== 0) state.selectionMap = {};
+    state.lastClick = null;
+    if (Object.keys(state.selectionMap).length !== 0) state.selectionMap = Object.create(null);
   },
   setSelectionDisabled(state: RootState, action: PayloadAction<boolean>) {
     state.disableSelection = action.payload;
-    if (Object.keys(state.selectionMap).length !== 0) state.selectionMap = {};
+    if (Object.keys(state.selectionMap).length !== 0) state.selectionMap = Object.create(null);
   },
   revealFile(state: RootState, action: PayloadAction<string>) {
     const revision = (state.revealFileRequest?.revision ?? 0) + 1;
@@ -187,6 +202,8 @@ const reducers = {
     state.fileViewConfig = action.payload;
   },
   setSort(state: RootState, action: PayloadAction<{ actionId: Nullable<string>; order: SortOrder }>) {
+    if (state.sortActionId !== action.payload.actionId || state.sortOrder !== action.payload.order)
+      state.lastClick = null;
     state.sortActionId = action.payload.actionId;
     state.sortOrder = action.payload.order;
   },
@@ -197,6 +214,7 @@ const reducers = {
     }
   },
   toggleOption(state: RootState, action: PayloadAction<string>) {
+    state.lastClick = null;
     state.optionMap[action.payload] = !state.optionMap[action.payload];
   },
   setThumbnailGenerator(state: RootState, action: PayloadAction<Nullable<ThumbnailGenerator>>) {
@@ -218,7 +236,10 @@ const reducers = {
     state.clearSelectionOnOutsideClick = action.payload;
   },
   setLastClickIndex(state: RootState, action: PayloadAction<Nullable<{ index: number; fileId: string }>>) {
-    state.lastClick = action.payload;
+    const row = state.grouping?.sparse?.rows.find(
+      (row) => row.kind === 'file' && row.fileId === action.payload?.fileId,
+    );
+    state.lastClick = action.payload ? { ...action.payload, sparseIndex: row?.index, groupId: row?.group.id } : null;
   },
   setContextMenuMounted(state: RootState, action: PayloadAction<boolean>) {
     state.contextMenuMounted = action.payload;

@@ -231,7 +231,7 @@ export const DuplicatesDemo = () => {
       </div>
       <p className="demo-help">
         {api === 'grouping'
-          ? 'Options switches between continuous groups and one group at a time. Keep/delete acts on full group membership, even when Filter hides copies. Reveal requires the target group to be expanded and the file unfiltered.'
+          ? 'Options switches between continuous groups and one group at a time. Keep only this keeps the selected file and deletes all other group members, including copies hidden by Filter. Delete selected deletes only selected rows. Reveal requires the target group to be expanded and the file unfiltered.'
           : 'GroupedFileList is controlled by the caller: only the active group’s loaded copies are supplied to FileBrowser. Load next copy demonstrates the afterFiles extension; switching groups clears selection.'}
       </p>
       <div className="demo-browser demo-browser-tall">

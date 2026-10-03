@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { Provider, useDispatch, useSelector, useStore } from 'react-redux';
 import {
   ChonkyActions,
   defineFileAction,
@@ -47,13 +49,6 @@ const documents: FileData[] = [
     },
     details: ['Owner: Morgan · Priority: 70', 'Waiting for approval'],
   },
-  ...Array.from({ length: 60 }, (_, index) => ({
-    id: `review-${index}`,
-    name: `review-${String(index).padStart(2, '0')}.txt`,
-    size: 120 + index,
-    priority: 60 - index,
-    details: [`Review queue · Priority: ${60 - index}`],
-  })),
   {
     id: 'review-notes',
     name: 'review-notes.txt',
@@ -75,20 +70,89 @@ const sortPriority = defineFileAction({
 });
 const actions = [sortPriority];
 
+const review = createSlice({
+  name: 'review',
+  initialState: { note: '', savedNote: 'No note saved.' },
+  reducers: {
+    edit: (state, action: { payload: string }) => {
+      state.note = action.payload;
+    },
+    save: (state) => {
+      state.savedNote = state.note.trim() ? `Saved note: ${state.note}` : 'No note saved.';
+    },
+    reset: () => ({ note: '', savedNote: 'No note saved.' }),
+  },
+});
+type ReviewState = ReturnType<typeof review.reducer>;
+
+const ReviewStatus = () => {
+  const savedNote = useSelector((state: ReviewState) => state.savedNote);
+  return (
+    <span data-testid="toolbar-review-status">
+      {savedNote === 'No note saved.' ? 'Review pending' : 'Review saved'}
+    </span>
+  );
+};
+
+const ReviewFooter = ({ selection, path }: { selection: number; path: string }) => {
+  const note = useSelector((state: ReviewState) => state.note);
+  const savedNote = useSelector((state: ReviewState) => state.savedNote);
+  const dispatch = useDispatch();
+  return (
+    <div className="demo-footer">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          dispatch(review.actions.save());
+        }}
+      >
+        <label>
+          Review note{' '}
+          <input
+            value={note}
+            onChange={(event) => dispatch(review.actions.edit(event.target.value))}
+            placeholder="Write a note for this review"
+          />
+        </label>
+        <button className="demo-button" type="submit">
+          Save note
+        </button>
+      </form>
+      <p aria-live="polite" data-testid="saved-note">
+        {savedNote}
+      </p>
+      <p>
+        <output data-testid="presentation-selection-count">{selection}</output> selected ·{' '}
+        <span data-testid="presentation-path">{path}</span>
+      </p>
+    </div>
+  );
+};
+
 export const PresentationDemo = () => {
+  const [store] = useState(() => configureStore({ reducer: review.reducer }));
+  return (
+    <Provider store={store}>
+      <PresentationBrowser />
+    </Provider>
+  );
+};
+
+const PresentationBrowser = () => {
+  const store = useStore<ReviewState>();
+  const [dark, setDark] = useState(false);
   const browser = useRef<FileBrowserHandle>(null);
   const [depth, setDepth] = useState(chain.length - 1);
   const [empty, setEmpty] = useState(false);
   const [inboxFiles, setInboxFiles] = useState<FileData[]>([]);
-  const [note, setNote] = useState('');
-  const [savedNote, setSavedNote] = useState('No note saved.');
+  const [reviewFiles, setReviewFiles] = useState(documents);
   const [selection, setSelection] = useState(0);
   const [generation, setGeneration] = useState(0);
   const [result, setResult] = useState('Priority starts descending. Choose Sort by priority again to reverse it.');
   const folderChain = empty
     ? [...chain.slice(0, -1), { id: 'inbox', name: 'Inbox', isDir: true }]
     : chain.slice(0, depth + 1);
-  const files = empty ? inboxFiles : depth === chain.length - 1 ? documents : [chain[depth + 1]];
+  const files = empty ? inboxFiles : depth === chain.length - 1 ? reviewFiles : [chain[depth + 1]];
   const path = `demo://${folderChain.map((folder) => folder.name).join('/')}`;
   const navigate = (nextDepth: number) => {
     setDepth(nextDepth);
@@ -119,8 +183,30 @@ export const PresentationDemo = () => {
         unknown.
       </p>
       <div className="demo-controls">
+        <label>
+          <input type="checkbox" checked={dark} onChange={(event) => setDark(event.target.checked)} /> Dark theme
+        </label>
         <button className="demo-button" onClick={() => navigate(chain.length - 1)}>
           Open deliverables
+        </button>
+        <button
+          className="demo-button"
+          disabled={reviewFiles.length > documents.length}
+          onClick={() => {
+            navigate(chain.length - 1);
+            setReviewFiles([
+              ...documents,
+              ...Array.from({ length: 60 }, (_, index) => ({
+                id: `review-${index}`,
+                name: `review-${String(index).padStart(2, '0')}.txt`,
+                size: 120 + index,
+                priority: 60 - index,
+                details: [`Review queue · Priority: ${60 - index}`],
+              })),
+            ]);
+          }}
+        >
+          Load 60 review files
         </button>
         <button
           className="demo-button"
@@ -143,8 +229,8 @@ export const PresentationDemo = () => {
           onClick={() => {
             navigate(chain.length - 1);
             setInboxFiles([]);
-            setNote('');
-            setSavedNote('No note saved.');
+            setReviewFiles(documents);
+            store.dispatch(review.actions.reset());
             setSelection(0);
             setGeneration((value) => value + 1);
             setResult('Demo restored. Priority starts descending.');
@@ -169,35 +255,8 @@ export const PresentationDemo = () => {
           iconComponent={ChonkyIconFA}
           disableDragAndDrop
           onFileAction={onAction}
-          footer={
-            <div className="demo-footer">
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  setSavedNote(note.trim() ? `Saved note: ${note}` : 'No note saved.');
-                }}
-              >
-                <label>
-                  Review note{' '}
-                  <input
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder="Write a note for this review"
-                  />
-                </label>
-                <button className="demo-button" type="submit">
-                  Save note
-                </button>
-              </form>
-              <p aria-live="polite" data-testid="saved-note">
-                {savedNote}
-              </p>
-              <p>
-                <output data-testid="presentation-selection-count">{selection}</output> selected ·{' '}
-                <span data-testid="presentation-path">{path}</span>
-              </p>
-            </div>
-          }
+          darkMode={dark}
+          footer={<ReviewFooter selection={selection} path={path} />}
         >
           <FileNavbar
             rootContent={
@@ -207,12 +266,31 @@ export const PresentationDemo = () => {
             }
             path={path}
           />
-          <FileToolbar />
+          <FileToolbar>
+            <ReviewStatus />
+          </FileToolbar>
           <FileList
             emptyPlaceholder={
               <div className="demo-empty">
                 <strong>No review files yet.</strong>
                 <p>This is a caller-provided empty state with a useful action.</p>
+                <details>
+                  <summary>Example directory error details</summary>
+                  <p>The review directory could not be read. No files are available until the caller retries.</p>
+                  <p>
+                    Requested directory: Workspace / Projects / Design system / Releases / Autumn collection / Inbox.
+                  </p>
+                  <p>The directory connection timed out while requesting its file names and review metadata.</p>
+                  <p>Check that the directory is available and that you have permission to read its contents.</p>
+                  <button
+                    className="demo-button"
+                    onClick={() =>
+                      setResult('Directory retry requested. This in-memory example keeps the folder empty.')
+                    }
+                  >
+                    Retry directory
+                  </button>
+                </details>
                 <button
                   className="demo-button"
                   onClick={() => setInboxFiles([{ ...documents[0], id: 'inbox-report' }])}

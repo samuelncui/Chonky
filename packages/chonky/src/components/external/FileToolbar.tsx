@@ -1,9 +1,8 @@
 import React, { ReactElement, ReactNode, useMemo } from 'react';
-import c from 'classnames';
 import { useChonkySelector } from '../../redux/store';
 
 import { selectToolbarItems, selectHideToolbarInfo, selectGrouping } from '../../redux/selectors';
-import { makeGlobalChonkyStyles } from '../../util/styles';
+import { composeStyles, makeGlobalChonkyStyles } from '../../util/styles';
 import { SmartToolbarButton } from './ToolbarButton';
 import { ToolbarDropdown } from './ToolbarDropdown';
 import { ToolbarInfo } from './ToolbarInfo';
@@ -45,8 +44,8 @@ export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> 
   const hideToolbarInfo = useChonkySelector(selectHideToolbarInfo);
   return (
     <div className={classes.toolbarWrapper}>
-      <div className={c(classes.toolbarContainer, inline && classes.toolbarContainerInline)}>
-        <div className={c(classes.toolbarLeft, inline && classes.toolbarLeftInline)}>
+      <div className={composeStyles(classes.toolbarContainer, inline && classes.toolbarContainerInline)}>
+        <div className={composeStyles(classes.toolbarLeft, inline && classes.toolbarLeftInline)}>
           <div className={classes.toolbarSearch}>
             {/* Sparse rows are caller-owned; filtering loaded files would misrepresent the full result. */}
             {!sparse && <ToolbarSearch />}
@@ -54,7 +53,9 @@ export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> 
           <div className={classes.toolbarSummary}>{!hideToolbarInfo && <ToolbarInfo />}</div>
           <div className={classes.toolbarExtras}>{children}</div>
         </div>
-        <div className={c(classes.toolbarRight, inline && classes.toolbarRightInline)}>{toolbarItemComponents}</div>
+        <div className={composeStyles(classes.toolbarRight, inline && classes.toolbarRightInline)}>
+          {toolbarItemComponents}
+        </div>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import {
   ThemeOptions,
 } from '@mui/material/styles';
 
-import { useChonkyStore } from '../../redux/store';
+import { ChonkyReduxContext, useChonkyStore } from '../../redux/store';
 import { FileBrowserHandle, FileBrowserProps } from '../../types/file-browser.types';
 import { defaultConfig } from '../../util/default-config';
 import { getValueOrFallback } from '../../util/helpers';
@@ -77,7 +77,7 @@ export const FileBrowser = React.forwardRef<FileBrowserHandle, FileBrowserProps 
     return (
       <IntlProvider locale="en" defaultLocale="en" {...i18n}>
         <ChonkyFormattersContext.Provider value={formatters}>
-          <ReduxProvider store={store}>
+          <ReduxProvider store={store} context={ChonkyReduxContext}>
             <StyledEngineProvider injectFirst>
               <MuiThemeProvider theme={theme}>
                 <ChonkyIconContext.Provider

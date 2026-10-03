@@ -71,30 +71,36 @@ export const useFileMapMethods = <FT extends CustomFileData>(
   const moveFiles = useCallback(
     (files: FT[], source: FT, destination: FT) =>
       setFileMap((currentFileMap) => {
+        const currentSource = currentFileMap[source.id];
+        const currentDestination = currentFileMap[destination.id];
+        if (source.id === destination.id) return currentFileMap;
+        const sourceIds = new Set(currentSource.childrenIds);
+        const movedFiles = files.filter((file) => sourceIds.has(file.id));
+        if (!movedFiles.length) return currentFileMap;
         const newFileMap = { ...currentFileMap };
-        const moveFileIds = new Set(files.map((f) => f.id));
+        const moveFileIds = new Set(movedFiles.map((file) => file.id));
 
         // Delete files from their source folder.
-        const newSourceChildrenIds = source.childrenIds!.filter((id) => !moveFileIds.has(id));
+        const newSourceChildrenIds = currentSource.childrenIds!.filter((id) => !moveFileIds.has(id));
         newFileMap[source.id] = {
-          ...source,
+          ...currentSource,
           childrenIds: newSourceChildrenIds,
           childrenCount: newSourceChildrenIds.length,
         };
 
         // Add the files to their destination folder.
-        const newDestinationChildrenIds = [...destination.childrenIds!, ...files.map((f) => f.id)];
+        const newDestinationChildrenIds = [...currentDestination.childrenIds!, ...movedFiles.map((file) => file.id)];
         newFileMap[destination.id] = {
-          ...destination,
+          ...currentDestination,
           childrenIds: newDestinationChildrenIds,
           childrenCount: newDestinationChildrenIds.length,
         };
 
         // Finally, update the parent folder ID on the files from source folder
         // ID to the destination folder ID.
-        files.forEach((file) => {
+        movedFiles.forEach((file) => {
           newFileMap[file.id] = {
-            ...file,
+            ...currentFileMap[file.id],
             parentId: destination.id,
           };
         });

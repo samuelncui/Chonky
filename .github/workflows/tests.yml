@@ -15,11 +15,20 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - name: Install pinned content scanner
+        run: |
+          bash scripts/install-gitleaks.sh "$RUNNER_TEMP/gitleaks"
+          echo "GITLEAKS_BIN=$RUNNER_TEMP/gitleaks/gitleaks" >> "$GITHUB_ENV"
+      - name: Scan source and complete history
+        run: node scripts/check-content.mjs source . HEAD
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - run: pnpm test:release
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
       - run: pnpm e2e

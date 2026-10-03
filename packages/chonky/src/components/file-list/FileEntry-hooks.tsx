@@ -24,7 +24,6 @@ export const useFileEntryHtmlProps = (file: Nullable<FileData>): HTMLProps<HTMLD
     };
 
     return {
-      role: 'listitem',
       ...dataProps,
     };
   }, [file]);

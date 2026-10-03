@@ -1,13 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { createRef, forwardRef, useImperativeHandle } from 'react';
 import { vi } from 'vitest';
 
 import { FileBrowser } from '../src/components/external/FileBrowser';
+import { FileToolbar } from '../src/components/external/FileToolbar';
 import { FileList } from '../src/components/file-list/FileList';
 import { ChonkyActions } from '../src/action-definitions';
 import { CustomVisibilityState, FileAction } from '../src/types/action.types';
 import { FileGrouping } from '../src/types/grouping.types';
+import { FileBrowserHandle } from '../src/types/file-browser.types';
 import { reduxActions, rootReducer } from '../src/redux/reducers';
 import {
   getFileActionState,
@@ -18,9 +20,11 @@ import {
 } from '../src/redux/selectors';
 import { thunkRequestFileAction } from '../src/redux/thunks/dispatchers.thunks';
 
+const scrollToIndex = vi.fn();
+
 vi.mock('react-virtuoso', () => ({
   Virtuoso: forwardRef((props: any, ref) => {
-    useImperativeHandle(ref, () => ({ scrollToIndex: vi.fn() }));
+    useImperativeHandle(ref, () => ({ scrollToIndex }));
     return (
       <div data-testid="virtual-list" data-total-count={props.totalCount}>
         {Array.from({ length: props.totalCount }, (_, index) => (
@@ -225,13 +229,16 @@ describe('grouped file lists', () => {
     );
   });
 
-  it('does not dispatch an action whose visibility disables it, including direct requests', async () => {
+  it.each([
+    ['Disabled', CustomVisibilityState.Disabled],
+    ['Hidden', CustomVisibilityState.Hidden],
+  ] as const)('blocks direct requests when action visibility is %s', async (_label, visibility) => {
     const store = makeStore();
     const handler = vi.fn();
     const action: FileAction = {
-      id: 'disabled_header_action',
-      customVisibility: () => CustomVisibilityState.Disabled,
-      button: { name: 'Disabled action', toolbar: true },
+      id: 'header_action',
+      customVisibility: () => visibility,
+      button: { name: 'Header action', toolbar: true },
     };
     setFilesAndGrouping(store);
     store.dispatch(reduxActions.setFileActions([action]));
@@ -266,7 +273,7 @@ describe('grouped file lists', () => {
     expect(selectors.getDisplayFileIds(store.getState())).toEqual(['archive-b', 'archive-a']);
   });
 
-  it('collapses continuous and single groups without putting headers in the display rows', () => {
+  it('collapses continuous and single groups without putting headers in the display file IDs', () => {
     let state = rootReducer(undefined, reduxActions.setRawFiles(files));
     state = rootReducer(state, reduxActions.setGrouping(grouping));
     state = rootReducer(state, reduxActions.toggleGroup('archive'));
@@ -280,6 +287,66 @@ describe('grouped file lists', () => {
     expect(selectors.getDisplayFileIds(state)).toEqual(['archive-b', 'archive-a']);
     state = rootReducer(state, reduxActions.toggleGroup('archive'));
     expect(selectors.getDisplayFileIds(state)).toEqual([]);
+  });
+
+  it.each(['collapsed', 'filtered'])(
+    'ignores a %s reveal target without changing selection or scrolling',
+    async (condition) => {
+      const ref = createRef<FileBrowserHandle>();
+      render(
+        <FileBrowser ref={ref} files={files} grouping={grouping} disableDragAndDrop>
+          <FileToolbar />
+          <FileList />
+        </FileBrowser>,
+      );
+      if (condition === 'collapsed') {
+        fireEvent.click(screen.getByRole('button', { name: 'Source' }));
+      } else {
+        fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'aardvark' } });
+      }
+      await waitFor(() => expect(document.querySelector('[data-chonky-file-id="source-a"]')).toBeNull());
+      act(() => ref.current?.setFileSelection(new Set(['archive-a'])));
+      scrollToIndex.mockClear();
+
+      act(() => ref.current?.revealFile('source-a'));
+      expect(ref.current?.getFileSelection()).toEqual(new Set(['archive-a']));
+      expect(scrollToIndex).not.toHaveBeenCalled();
+
+      if (condition === 'collapsed') fireEvent.click(screen.getByRole('button', { name: 'Source' }));
+      else fireEvent.keyUp(screen.getByRole('textbox'), { key: 'Escape' });
+      await waitFor(() => expect(document.querySelector('[data-chonky-file-id="source-a"]')).not.toBeNull());
+      expect(scrollToIndex).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ['Grid', ChonkyActions.EnableGridView],
+    ['Compact', ChonkyActions.EnableCompactView],
+  ] as const)('blocks %s while grouped and restores view actions when grouping is removed', async (_view, action) => {
+    const ref = createRef<FileBrowserHandle>();
+    const { rerender } = render(
+      <FileBrowser ref={ref} files={files} grouping={grouping} fileActions={[action]} disableDragAndDrop>
+        <FileList />
+      </FileBrowser>,
+    );
+    await act(async () => {
+      await ref.current?.requestFileAction(action, undefined);
+    });
+    expect(screen.getByTestId('virtual-list')).toBeTruthy();
+    expect(screen.queryByTestId('virtual-grid')).toBeNull();
+
+    rerender(
+      <FileBrowser ref={ref} files={files} fileActions={[action]} disableDragAndDrop>
+        <FileList />
+      </FileBrowser>,
+    );
+    expect(screen.getByTestId('virtual-list')).toBeTruthy();
+    await act(async () => {
+      await ref.current?.requestFileAction(action, undefined);
+    });
+    expect(screen.getByTestId('virtual-grid')).toBeTruthy();
+    expect(screen.queryByTestId('virtual-list')).toBeNull();
   });
 
   it('renders header actions as disabled or hidden and clicking an enabled action does not collapse its group', async () => {

@@ -30,6 +30,9 @@ test('shows accessible status and measured details with custom descending sort',
 });
 
 test('reveals offscreen files and preserves ordinary footer editing', async ({ page }) => {
+  await expect(page.locator('[data-chonky-file-id]')).toHaveCount(3);
+  await expect(file(page, 'review-notes')).toBeVisible();
+  await page.getByRole('button', { name: 'Load 60 review files' }).click();
   await expect(file(page, 'review-notes')).toHaveCount(0);
   await page.getByRole('button', { name: 'Reveal review-notes.txt' }).click();
   await expect(file(page, 'review-notes')).toBeVisible();
@@ -50,6 +53,8 @@ test('reveals offscreen files and preserves ordinary footer editing', async ({ p
   await expect(note).toBeVisible();
   await expect(note).toHaveValue('Approved for review');
   await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('[data-chonky-file-id]')).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'Load 60 review files' })).toBeEnabled();
   await expect(note).toHaveValue('');
   await expect(page.getByTestId('saved-note')).toHaveText('No note saved.');
 });
@@ -83,4 +88,59 @@ test('offers a useful custom empty state and an explicit open event demonstratio
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await page.getByRole('button', { name: 'Show empty folder' }).click();
   await expect(page.getByText('No review files yet.', { exact: true })).toBeVisible();
+});
+
+test('scrolls expanded empty-state details to an accessible retry action in a narrow, short pane', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 640 });
+  await page.getByRole('button', { name: 'Show empty folder' }).click();
+  const browser = page.locator('.demo-browser');
+  await browser.evaluate((element) => (element.style.height = '480px'));
+  await browser.scrollIntoViewIfNeeded();
+  await page.getByText('Example directory error details', { exact: true }).click();
+
+  const pane = page.locator('.chonky-fileListWrapper');
+  const scroller = pane.locator('.chonky-emptyListContainer');
+  const retry = page.getByRole('button', { name: 'Retry directory' });
+  await expect(pane.locator('[data-virtuoso-scroller]')).toHaveCount(0);
+  await expect(retry).not.toBeInViewport();
+  const bounds = await pane.boundingBox();
+  const pageScroll = await page.evaluate(() => window.scrollY);
+  await scroller.hover();
+  await page.mouse.wheel(0, 1000);
+  await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(retry).toBeInViewport({ ratio: 1 });
+  const actionBounds = await retry.boundingBox();
+  expect(actionBounds!.y).toBeGreaterThanOrEqual(bounds!.y);
+  expect(actionBounds!.y + actionBounds!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height);
+  expect(await page.evaluate(() => window.scrollY)).toBe(pageScroll);
+  const detail = page.getByText(
+    'Check that the directory is available and that you have permission to read its contents.',
+  );
+  await detail.scrollIntoViewIfNeeded();
+  await expect(detail).toBeInViewport({ ratio: 1 });
+  await retry.click();
+  await expect(page.getByRole('status', { name: 'Action result' })).toContainText('Directory retry requested.');
+});
+
+test('host Redux slots and bounded style rules survive theme switches and remounts', async ({ page }) => {
+  const note = page.getByRole('textbox', { name: 'Review note' });
+  await note.fill('Shared review');
+  await page.getByRole('button', { name: 'Save note' }).click();
+  await expect(page.getByTestId('toolbar-review-status')).toHaveText('Review saved');
+  const theme = page.getByRole('checkbox', { name: 'Dark theme' });
+  const cycle = async () => {
+    await theme.check();
+    await expect(file(page, 'report')).toBeVisible();
+    await page.getByRole('button', { name: 'Reset demo' }).click();
+    await theme.uncheck();
+    await page.getByRole('button', { name: 'Reset demo' }).click();
+    await expect(file(page, 'report')).toBeVisible();
+  };
+  const rules = () =>
+    page.evaluate(() => [...document.styleSheets].reduce((sum, sheet) => sum + sheet.cssRules.length, 0));
+  await cycle();
+  const warmedRules = await rules();
+  for (let index = 0; index < 4; index++) await cycle();
+  expect(await rules()).toBe(warmedRules);
+  await expect(page.getByTestId('toolbar-review-status')).toHaveText('Review pending');
 });

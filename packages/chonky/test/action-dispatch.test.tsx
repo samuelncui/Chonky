@@ -9,33 +9,44 @@ import { FileBrowserHandle } from '../src/types/file-browser.types';
 import { Logger } from '../src/util/logger';
 
 describe('external action handlers', () => {
-  it.each(['double-click', 'open selection'])('honors registered OpenFiles overrides through %s', async (entry) => {
-    const ref = createRef<FileBrowserHandle>();
-    const file = { id: 'file', name: 'File.txt' };
-    const effect = vi.fn(() => true);
-    const override: FileAction = { ...ChonkyActions.OpenFiles, effect };
-    const onFileAction = vi.fn();
-    render(
-      <FileBrowser ref={ref} files={[file]} fileActions={[override]} onFileAction={onFileAction} disableDragAndDrop />,
-    );
-    await act(async () => {
-      if (entry === 'double-click') {
-        await ref.current?.requestFileAction(ChonkyActions.MouseClickFile, {
-          clickType: 'double',
-          file,
-          fileDisplayIndex: 0,
-          altKey: false,
-          ctrlKey: false,
-          shiftKey: false,
-        });
-      } else {
-        ref.current?.setFileSelection(new Set([file.id]));
-        await ref.current?.requestFileAction(ChonkyActions.OpenSelection, undefined);
-      }
-    });
-    expect(effect).toHaveBeenCalledTimes(1);
-    expect(onFileAction.mock.calls.filter(([data]) => data.id === ChonkyActions.OpenFiles.id)).toHaveLength(0);
-  });
+  it.each(['double-click', 'open selection', 'direct ref request'])(
+    'honors registered OpenFiles overrides through %s',
+    async (entry) => {
+      const ref = createRef<FileBrowserHandle>();
+      const file = { id: 'file', name: 'File.txt' };
+      const effect = vi.fn(() => true);
+      const override: FileAction = { ...ChonkyActions.OpenFiles, effect };
+      const onFileAction = vi.fn();
+      render(
+        <FileBrowser
+          ref={ref}
+          files={[file]}
+          fileActions={[override]}
+          onFileAction={onFileAction}
+          disableDragAndDrop
+        />,
+      );
+      await act(async () => {
+        if (entry === 'double-click') {
+          await ref.current?.requestFileAction(ChonkyActions.MouseClickFile, {
+            clickType: 'double',
+            file,
+            fileDisplayIndex: 0,
+            altKey: false,
+            ctrlKey: false,
+            shiftKey: false,
+          });
+        } else if (entry === 'open selection') {
+          ref.current?.setFileSelection(new Set([file.id]));
+          await ref.current?.requestFileAction(ChonkyActions.OpenSelection, undefined);
+        } else {
+          await ref.current?.requestFileAction(ChonkyActions.OpenFiles, { targetFile: file, files: [file] });
+        }
+      });
+      expect(effect).toHaveBeenCalledTimes(1);
+      expect(onFileAction.mock.calls.filter(([data]) => data.id === ChonkyActions.OpenFiles.id)).toHaveLength(0);
+    },
+  );
 
   it.each([
     ['throw', new Error('Handler failed')],

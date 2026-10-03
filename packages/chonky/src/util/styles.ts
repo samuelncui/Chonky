@@ -2,7 +2,7 @@ import { Theme as MuiTheme } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import classnames from 'classnames';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { DeepPartial } from 'tsdef';
 
 export const lightTheme = {
@@ -182,3 +182,6 @@ export const important = <T>(value: T): ImportantValue => ({
 });
 
 export const c: typeof classnames = classnames;
+
+// Compose registered rules in precedence order; plain public hooks remain intact.
+export const composeStyles: typeof cx = cx;

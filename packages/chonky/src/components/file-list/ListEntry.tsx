@@ -6,7 +6,7 @@ import { useChonkySelector } from '../../redux/store';
 import { DndEntryState, FileEntryProps } from '../../types/file-list.types';
 import { useLocalizedFileEntryStrings } from '../../util/i18n';
 import { ChonkyIconContext } from '../../util/icon-helper';
-import { c, makeLocalChonkyStyles } from '../../util/styles';
+import { composeStyles, makeLocalChonkyStyles } from '../../util/styles';
 import { TextPlaceholder } from '../external/TextPlaceholder';
 import { useDndIcon, useFileEntryHtmlProps, useFileEntryState } from './FileEntry-hooks';
 import { FileEntryName } from './FileEntryName';
@@ -42,7 +42,7 @@ export const ListEntry: React.FC<FileEntryProps> = React.memo(({ file, selected,
   return (
     <div className={classes.listFileEntry} {...fileEntryHtmlProps}>
       <div className={commonClasses.focusIndicator}></div>
-      <div className={c([commonClasses.selectionIndicator, classes.listFileEntrySelection])}></div>
+      <div className={composeStyles(commonClasses.selectionIndicator, classes.listFileEntrySelection)}></div>
       <div className={classes.listFileEntryIcon}>
         <ChonkyIcon
           icon={dndIconName ?? entryState.icon}

@@ -15,6 +15,7 @@
     "e2e:pages": "pnpm --filter @samuelncui/chonky-example build --base=/Chonky/ && playwright test --config=playwright.pages.config.ts",
     "typecheck": "pnpm --recursive --if-present run typecheck",
     "test": "pnpm --recursive --if-present run test",
+    "test:release": "node --test scripts/*.test.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

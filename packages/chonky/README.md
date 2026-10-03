@@ -46,6 +46,36 @@ Invalid modification dates are treated as missing for display and sorting.
 Enter, including keypad Enter, opens the focused openable file when selection is
 empty; otherwise, the default Open selection action opens the openable selection.
 
+File lists use list/listitem semantics. Selectable rows expose a native, named
+checkbox as their selection tab stop; row actions remain sibling controls.
+Space toggles selection, and the keyboard context menu targets the focused file.
+Mouse row selection retains Ctrl/Cmd and Shift behavior. Grid checkboxes overlay
+the card so they do not reduce the space for previews and file names. Thumbnails use native
+images with contained sizing, including URLs containing quotes or non-ASCII text.
+
+Each browser uses a private Redux context. Caller components in children, toolbar
+and footer slots keep the enclosing application's ordinary `useSelector`,
+`useDispatch` and `useStore` context. Multiple browser instances own independent
+selection and navigation state.
+
+### Styling boundaries
+
+Chonky uses MUI's `StyledEngineProvider injectFirst` and a per-browser theme, plus
+the shared `@emotion/css` cache for its generated classes. Overlapping generated
+classes compose in base, variant/state, then caller order through Emotion's `cx`.
+Plain classes with no conflicting declarations still use `classnames`. Existing
+`chonky-*` hooks and `theme`/`muiThemeOptions` overrides remain supported; generated
+hashes are not customization hooks. External styles still follow the CSS cascade,
+including specificity and `!important`; caller class order alone cannot override it.
+Avoid blanket important button colors that mask disabled, active and focus states.
+Portaled MUI controls retain the browser theme; application-owned portal content
+may restore its own app theme at that boundary.
+
+`ChonkyActions.EnableCompactView` remains experimental and opt-in. Ordinary file
+lists support its compact entries, native selection, and focus/selection indicators.
+Grouped and sparse projections use List view. Compact does not provide List view's
+status/detail presentation or Grid view's thumbnail/DnD preview indicators.
+
 `disableDragAndDrop` prevents drag starts and resulting moves when a shared DnD
 provider is supplied, including moves from a drag started before disabling it.
 Dragging a selected file moves only draggable members of the selection;
@@ -77,6 +107,18 @@ export function RevealableBrowser() {
 displayed and selectable. Otherwise, the current selection and viewport remain
 unchanged.
 
+For ordinary lists and grouping supplied through `groups`, the built-in Select
+All action selects visible, selectable files, respecting the current Filter
+and Show hidden files option. A ref's `setFileSelection` accepts file IDs
+directly and can select supplied files hidden by a filter.
+
+For an in-memory folder tree, the exported `fileMap.useFileMap` hook provides `files`,
+`folderChain`, navigation and move/reset methods, plus a `fileActionHandler` for
+OpenFiles and MoveFiles. Moves update folder membership, child counts and each
+file's `parentId` without mutating the caller's `baseFileMap`. Reset restores
+that map and the initial folder. The Ordinary files example uses this hook and
+its `setFileMap` method for custom note creation and fixture loading.
+
 See the [live demo](https://samuelncui.github.io/Chonky/) and the
 [repository](https://github.com/samuelncui/Chonky) for the runnable example
 and development instructions.
@@ -98,10 +140,23 @@ MIT
 - `FileBrowser.footer`, also accepted by `FullFileBrowser`, holds optional content below
   the independently scrolling browser body. Footer inputs retain ordinary editing.
 - `FileList.emptyPlaceholder` supplies custom content for an empty, non-loading list.
+  Long content scrolls within the file-list pane, including when a sparse list has zero rows.
 
 These options do not require application-specific data, services or filesystem operations.
 
 ## Grouped lists
+
+`grouping` and `GroupedFileList` are distinct integrations: `grouping` renders
+headers and members together, while `GroupedFileList` renders caller-controlled
+headers around only the active group's supplied files. The demo's "loaded group"
+option selects `GroupedFileList`; `single` is a mode of `grouping`.
+"Identical files" names the example's content; its copies are ordinary files,
+and Chonky does not decide which files have identical content.
+
+Filter is the UI label for file-name search; exported search action names and
+i18n IDs retain their existing spelling. `FileActionButton.group` organizes
+action menus, while `state.group` identifies a file group. Sparse **rows** include
+headers and unloaded positions; **files** and action `fileIds` identify members.
 
 Pass `grouping` to `FileBrowser` (or `FullFileBrowser`) to render `FileList` as
 one measured, virtualized list with group headers and ordinary file rows:
@@ -211,3 +266,13 @@ API has no failed-page state; the caller owns page errors and retry controls.
 Selection, Select All, and group action `fileIds` cover loaded file rows only.
 Keep a selected file's row in `rows` while it must remain
 selectable across range changes. The existing `groups` form retains its behavior.
+Toggling another sparse group's header preserves the active group and selection.
+Collapsing the active group clears its selection and range anchor.
+
+Sparse Shift anchors use stable file IDs and virtual positions. Loading or evicting
+other rows does not move the anchor; selecting a range covers loaded members only.
+An absent anchor cannot extend a range until it is available again. Changing the
+anchor's virtual position/group, the sort, filter, folder, or active group resets
+it. Callers replacing an entire sparse projection reset/remount the browser (as in
+the sparse example); the library cannot infer changes to unloaded rows. Cache-only
+changes do not run ordinary file sorting/search or allocate the total row count.

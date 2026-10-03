@@ -64,18 +64,20 @@ export const useKeyDownHandler = (onKeyboardClick?: KeyboardClickEventHandler) =
   return useCallback(
     (event: React.KeyboardEvent) => {
       if (!onKeyboardClick) return;
+      if (event.target instanceof Element && event.target.closest('button,a[href],[role="button"],[role="menuitem"]'))
+        return;
 
       const keyboardClickEvent: KeyboardClickEvent = {
         enterKey: event.key === 'Enter',
-        spaceKey: event.nativeEvent.code === 'Space',
+        spaceKey: event.key === ' ' || event.nativeEvent.code === 'Space',
         altKey: event.altKey,
-        ctrlKey: event.ctrlKey,
+        ctrlKey: event.ctrlKey || event.metaKey,
         shiftKey: event.shiftKey,
       };
 
       if (keyboardClickEvent.spaceKey || keyboardClickEvent.enterKey) {
         event.preventDefault();
-        if (keyboardClickEvent.spaceKey) event.stopPropagation();
+        event.stopPropagation();
         onKeyboardClick(keyboardClickEvent);
       }
     },

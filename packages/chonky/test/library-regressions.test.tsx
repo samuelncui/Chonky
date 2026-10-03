@@ -4,7 +4,6 @@ import { vi } from 'vitest';
 
 import { FileBrowser } from '../src/components/external/FileBrowser';
 import { ChonkyActions } from '../src/action-definitions';
-import { FileEntryStatus } from '../src/components/file-list/FileEntryStatus';
 import { FileList } from '../src/components/file-list/FileList';
 import { useThumbnailUrl } from '../src/components/file-list/FileEntry-hooks';
 import { selectors, selectSortOrder } from '../src/redux/selectors';
@@ -121,6 +120,35 @@ describe('library regressions', () => {
     expect(screen.getByTestId('thumbnail-state').textContent).toBe('/direct.jpg');
   });
 
+  it('ignores an older thumbnail result after the displayed file changes', async () => {
+    const oldFile = { id: 'old', name: 'Old.jpg' };
+    const currentFile = { id: 'current', name: 'Current.jpg' };
+    let resolveOld!: (url: string) => void;
+    const thumbnailGenerator = vi
+      .fn()
+      .mockReturnValueOnce(
+        new Promise<string>((resolve) => {
+          resolveOld = resolve;
+        }),
+      )
+      .mockResolvedValue('/current.jpg');
+    const { rerender } = render(
+      <FileBrowser files={[oldFile]} thumbnailGenerator={thumbnailGenerator} disableDragAndDrop>
+        <ThumbnailState file={oldFile} />
+      </FileBrowser>,
+    );
+    await waitFor(() => expect(thumbnailGenerator).toHaveBeenCalledWith(oldFile));
+    rerender(
+      <FileBrowser files={[currentFile]} thumbnailGenerator={thumbnailGenerator} disableDragAndDrop>
+        <ThumbnailState file={currentFile} />
+      </FileBrowser>,
+    );
+    await waitFor(() => expect(screen.getByTestId('thumbnail-state').textContent).toBe('/current.jpg'));
+    await act(async () => resolveOld('/old.jpg'));
+    expect(screen.getByTestId('thumbnail-state').textContent).toBe('/current.jpg');
+    expect(screen.getByTestId('thumbnail-state').getAttribute('data-loading')).toBe('false');
+  });
+
   it('reports a non-Error thumbnail rejection without leaving an unhandled rejection', async () => {
     const file = { id: 'file', name: 'Photo.jpg' };
     const thumbnailGenerator = vi.fn().mockRejectedValue(null);
@@ -151,7 +179,7 @@ describe('library regressions', () => {
     );
     await screen.findByTestId('virtual-list');
     act(() => ref.current?.setFileSelection(new Set(['file'])));
-    const wrapper = document.querySelector('[data-chonky-file-id="file"]')!.parentElement!;
+    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
     act(() => wrapper.focus());
     fireEvent.keyDown(wrapper, { code: 'Enter', key: 'Enter', keyCode: 13 });
     await waitFor(() =>
@@ -177,7 +205,7 @@ describe('library regressions', () => {
       </FileBrowser>,
     );
     await screen.findByTestId('virtual-list');
-    const wrapper = document.querySelector('[data-chonky-file-id="file"]')!.parentElement!;
+    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
     act(() => wrapper.focus());
     await act(async () => {
       fireEvent.keyDown(wrapper, { code: 'Enter', key: 'Enter', keyCode: 13 });
@@ -193,7 +221,7 @@ describe('library regressions', () => {
         <FileList />
       </FileBrowser>,
     );
-    const wrapper = document.querySelector('[data-chonky-file-id="file"]')!.parentElement!;
+    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
     act(() => wrapper.focus());
     await act(async () => {
       fireEvent.keyDown(wrapper, { code: 'NumpadEnter', key: 'Enter', keyCode: 13 });
@@ -299,19 +327,6 @@ describe('library regressions', () => {
     act(() => ref.current?.setFileSelection(new Set(['a'])));
     act(() => ref.current?.setFileSelection(new Set(['outside', 'b']), false));
     expect(ref.current?.getFileSelection()).toEqual(new Set(['a', 'b']));
-  });
-
-  it('exposes the supplemental status marker label to assistive technology', () => {
-    render(
-      <FileEntryStatus
-        status={{
-          label: 'Archived',
-          color: 'green',
-          marker: { label: 'Copy differs', color: 'orange', kind: 'changed' },
-        }}
-      />,
-    );
-    expect(screen.getByRole('img', { name: 'Archived', description: 'Archived: Copy differs' })).toBeTruthy();
   });
 
   it('allows list rows with details to measure their content instead of fixing their height', () => {

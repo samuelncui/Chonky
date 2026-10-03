@@ -7,7 +7,7 @@ import { makeLocalChonkyStyles } from '../../util/styles';
 import { TextPlaceholder } from '../external/TextPlaceholder';
 import { useFileEntryHtmlProps, useFileEntryState } from './FileEntry-hooks';
 import { FileEntryName } from './FileEntryName';
-import { FileEntryState } from './GridEntryPreview';
+import { FileEntryState, useCommonEntryStyles } from './GridEntryPreview';
 
 export const CompactEntry: React.FC<FileEntryProps> = React.memo(
   // @ts-ignore
@@ -17,6 +17,7 @@ export const CompactEntry: React.FC<FileEntryProps> = React.memo(
     const { fileModDateString, fileSizeString } = useLocalizedFileEntryStrings(file);
 
     const classes = useStyles(entryState);
+    const commonClasses = useCommonEntryStyles(entryState);
     const ChonkyIcon = useContext(ChonkyIconContext);
     const fileEntryHtmlProps = useFileEntryHtmlProps(file);
     return (
@@ -37,8 +38,8 @@ export const CompactEntry: React.FC<FileEntryProps> = React.memo(
             </div>
           </div>
         </div>
-        <div className="chonky-file-entry-outline"></div>
-        <div className="chonky-file-entry-selection"></div>
+        <div className={commonClasses.focusIndicator}></div>
+        <div className={commonClasses.selectionIndicator}></div>
       </div>
     );
   },

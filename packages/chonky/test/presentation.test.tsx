@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { createRef, forwardRef, useImperativeHandle } from 'react';
 import { vi } from 'vitest';
 
@@ -72,7 +72,11 @@ describe('presentation extensions', () => {
         reserve
       />,
     );
-    expect(screen.getByRole('img', { name: 'Checksum warning' }).hasAttribute('data-chonky-status-slot')).toBe(true);
+    expect(
+      screen
+        .getByRole('img', { name: 'Checksum warning', description: 'Checksum warning: Warning' })
+        .hasAttribute('data-chonky-status-slot'),
+    ).toBe(true);
     expect(screen.getByText('!').getAttribute('aria-hidden')).toBe('true');
   });
 
@@ -119,8 +123,8 @@ describe('presentation extensions', () => {
     await waitFor(() => expect(browserRef.current?.getFileSelection()).toEqual(new Set()));
   });
 
-  it('suppresses an empty placeholder until initial loading completes', () => {
-    render(
+  it('shows the empty placeholder only after initial loading completes', () => {
+    const { rerender } = render(
       <FileBrowser files={[]} disableDragAndDrop>
         <FileList loading="initial" emptyPlaceholder={<span>Nothing here</span>} />
       </FileBrowser>,
@@ -128,5 +132,44 @@ describe('presentation extensions', () => {
 
     expect(screen.queryByText('Nothing here')).toBeNull();
     expect(screen.getByRole('progressbar', { name: 'Loading files' })).not.toBeNull();
+    expect(screen.getByRole('list').getAttribute('aria-busy')).toBe('true');
+
+    rerender(
+      <FileBrowser files={[]} disableDragAndDrop>
+        <FileList emptyPlaceholder={<span>Nothing here</span>} />
+      </FileBrowser>,
+    );
+    expect(screen.getByText('Nothing here')).toBeTruthy();
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(screen.getByRole('list').getAttribute('aria-busy')).toBe('false');
+  });
+
+  it.each(['refreshing', 'more'] as const)('preserves file rows and selection during %s loading', (loading) => {
+    const ref = createRef<import('../src/types/file-browser.types').FileBrowserHandle>();
+    const files = [{ id: 'file', name: 'File.txt' }];
+    const { container, rerender } = render(
+      <FileBrowser ref={ref} files={files} disableDragAndDrop>
+        <FileList />
+      </FileBrowser>,
+    );
+    act(() => ref.current?.setFileSelection(new Set(['file'])));
+    rerender(
+      <FileBrowser ref={ref} files={files} disableDragAndDrop>
+        <FileList loading={loading} loadingLabel="Updating files" />
+      </FileBrowser>,
+    );
+    expect(container.querySelector('[data-chonky-file-id="file"]')).toBeTruthy();
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file']));
+    expect(screen.getByRole('progressbar', { name: 'Updating files' })).toBeTruthy();
+    expect(screen.getByRole('list').getAttribute('aria-busy')).toBe('true');
+    rerender(
+      <FileBrowser ref={ref} files={files} disableDragAndDrop>
+        <FileList />
+      </FileBrowser>,
+    );
+    expect(container.querySelector('[data-chonky-file-id="file"]')).toBeTruthy();
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file']));
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(screen.getByRole('list').getAttribute('aria-busy')).toBe('false');
   });
 });

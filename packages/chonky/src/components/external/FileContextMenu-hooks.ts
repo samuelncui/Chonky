@@ -14,9 +14,15 @@ export const findClosestChonkyFileId = (element: HTMLElement | any): Nullable<st
   const fileEntryWrapperDiv = findElementAmongAncestors(
     element,
     (element: any) =>
-      element.tagName && element.tagName.toLowerCase() === 'div' && element.dataset && element.dataset.chonkyFileId,
+      element.dataset &&
+      (element.dataset.chonkyFileId || element.dataset.chonkySelectionId || element.dataset.chonkyContextFileId),
   );
-  return fileEntryWrapperDiv ? fileEntryWrapperDiv.dataset.chonkyFileId! : null;
+  return fileEntryWrapperDiv
+    ? (fileEntryWrapperDiv.dataset.chonkyFileId ??
+        fileEntryWrapperDiv.dataset.chonkySelectionId ??
+        fileEntryWrapperDiv.dataset.chonkyContextFileId ??
+        null)
+    : null;
 };
 
 export const useContextMenuTrigger = () => {

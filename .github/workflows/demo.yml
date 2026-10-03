@@ -16,16 +16,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+      RELEASE_BASE_COMMIT: ${{ vars.RELEASE_BASE_COMMIT }}
+      RELEASE_PREVIOUS_TIP: ${{ github.event.before }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - name: Verify exact Demo source and squash boundary
+        run: node scripts/verify-release.mjs
+      - name: Install pinned content scanner
+        run: |
+          bash scripts/install-gitleaks.sh "$RUNNER_TEMP/gitleaks"
+          echo "GITLEAKS_BIN=$RUNNER_TEMP/gitleaks/gitleaks" >> "$GITHUB_ENV"
+      - name: Scan source and complete history
+        run: node scripts/check-content.mjs source . HEAD
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - run: pnpm test:release
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
+      - run: pnpm e2e
       - run: pnpm e2e:pages
+      - name: Check exact Pages inputs
+        run: |
+          node scripts/verify-release.mjs
+          node scripts/check-content.mjs artifacts packages/chonky/example/dist
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

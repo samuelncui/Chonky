@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect } from 'react';
-import { useDispatch, useSelector, useStore } from 'react-redux';
+import { createContext, useCallback, useEffect, useLayoutEffect } from 'react';
+import { createDispatchHook, createSelectorHook, createStoreHook, type ReactReduxContextValue } from 'react-redux';
 
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -9,9 +9,11 @@ import { rootReducer } from './reducers';
 import { initialRootState } from './state';
 import { useStoreWatchers } from './watchers';
 
-export const useChonkyDispatch = useDispatch.withTypes<ChonkyDispatch>();
-export const useChonkySelector = useSelector.withTypes<RootState>();
-export const useChonkyReduxStore = useStore.withTypes<ChonkyStore>();
+// Library state must not shadow the host application's Redux context in caller slots.
+export const ChonkyReduxContext = createContext<ReactReduxContextValue | null>(null);
+export const useChonkyDispatch = createDispatchHook(ChonkyReduxContext).withTypes<ChonkyDispatch>();
+export const useChonkySelector = createSelectorHook(ChonkyReduxContext).withTypes<RootState>();
+export const useChonkyReduxStore = createStoreHook(ChonkyReduxContext).withTypes<ChonkyStore>();
 
 export const useChonkyStore = (chonkyInstanceId: string) => {
   const store = useStaticValue(() => {

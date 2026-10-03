@@ -10,7 +10,7 @@ import { Nullable } from 'tsdef';
 import { DndEntryState } from '../../types/file-list.types';
 import { ChonkyIconName } from '../../types/icons.types';
 import { ChonkyIconContext } from '../../util/icon-helper';
-import { c, important, makeLocalChonkyStyles } from '../../util/styles';
+import { c, composeStyles, important, makeLocalChonkyStyles } from '../../util/styles';
 import { FileThumbnail } from './FileThumbnail';
 import { GridEntryDndIndicator } from './GridEntryDndIndicator';
 
@@ -46,7 +46,7 @@ export const GridEntryPreviewFolder: React.FC<FileEntryPreviewProps> = React.mem
         <div className={folderClasses.folderBackSideTop} />
         <div className={folderClasses.folderFrontSide}>
           <GridEntryDndIndicator className={fileClasses.dndIndicator} dndState={dndState} />
-          <div className={c([fileClasses.fileIcon, folderClasses.fileIcon])}>{entryState.childrenCount}</div>
+          <div className={composeStyles(fileClasses.fileIcon, folderClasses.fileIcon)}>{entryState.childrenCount}</div>
           <div className={commonClasses.selectionIndicator}></div>
           <FileThumbnail className={fileClasses.thumbnail} thumbnailUrl={entryState.thumbnailUrl} />
         </div>

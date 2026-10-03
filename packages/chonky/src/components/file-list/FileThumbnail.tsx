@@ -18,17 +18,28 @@ export interface FileThumbnailProps {
 export const FileThumbnail: React.FC<FileThumbnailProps> = React.memo((props) => {
   const { className, thumbnailUrl } = props;
 
-  const thumbnailStyle: React.CSSProperties = thumbnailUrl ? { backgroundImage: `url('${thumbnailUrl}')` } : {};
-
   const classes = useStyles();
-  return <div className={c([className, classes.fileThumbnail])} style={thumbnailStyle} />;
+  return (
+    <div className={c(className, classes.fileThumbnail)}>
+      {thumbnailUrl && (
+        <img
+          key={thumbnailUrl}
+          src={thumbnailUrl}
+          alt=""
+          draggable={false}
+          onError={(event) => {
+            event.currentTarget.style.visibility = 'hidden';
+          }}
+        />
+      )}
+    </div>
+  );
 });
 FileThumbnail.displayName = 'FileThumbnail';
 
 const useStyles = makeGlobalChonkyStyles(() => ({
   fileThumbnail: {
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center',
-    backgroundSize: 'contain',
+    overflow: 'hidden',
+    '& > img': { width: '100%', height: '100%', objectFit: 'contain', display: 'block' },
   },
 }));

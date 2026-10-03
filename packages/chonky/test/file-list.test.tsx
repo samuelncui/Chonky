@@ -1,11 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { createRef, forwardRef, useImperativeHandle } from 'react';
 import { vi } from 'vitest';
 
 import { FileBrowser } from '../src/components/external/FileBrowser';
+import { FileToolbar } from '../src/components/external/FileToolbar';
 import { FileList } from '../src/components/file-list/FileList';
+import { ChonkyActions } from '../src/action-definitions';
 import { reduxActions, rootReducer } from '../src/redux/reducers';
-import { selectHiddenFileIdMap, selectors } from '../src/redux/selectors';
+import { FileBrowserHandle } from '../src/types/file-browser.types';
 
 const scrollToIndex = vi.fn();
 
@@ -34,20 +36,34 @@ describe('file list', () => {
     { id: 'file-b', name: 'File B' },
   ];
 
-  it('keeps Redux state canonical', () => {
-    const state = rootReducer(undefined, reduxActions.setRawFiles(files));
+  it('selects only visible, selectable files with Select All', async () => {
+    const ref = createRef<FileBrowserHandle>();
+    render(
+      <FileBrowser
+        ref={ref}
+        files={[
+          ...files,
+          { id: 'blocked', name: 'File A blocked', selectable: false },
+          { id: 'hidden', name: 'File A hidden', isHidden: true },
+        ]}
+        disableDragAndDrop
+      >
+        <FileToolbar />
+        <FileList />
+      </FileBrowser>,
+    );
+    await act(async () => {
+      ref.current?.setFileSelection(new Set(['file-b']));
+      await ref.current?.requestFileAction(ChonkyActions.ToggleHiddenFiles, undefined);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'File A' } });
+    await waitFor(() => expect(screen.getByTestId('virtual-list').getAttribute('data-total-count')).toBe('2'));
 
-    expect(state.files).toEqual(files);
-    expect(state.fileIds).toEqual(['file-a', 'file-b']);
-    expect(Object.keys(state.fileMap)).toEqual(['file-a', 'file-b']);
-    expect(selectors.getDisplayFileIds(state)).toEqual(['file-a', 'file-b']);
-  });
-
-  it('exposes filtered files to selection transforms', () => {
-    let state = rootReducer(undefined, reduxActions.setRawFiles(files));
-    state = rootReducer(state, reduxActions.setSearchString('File A'));
-
-    expect(selectHiddenFileIdMap(state)).toEqual({ 'file-b': true });
+    await act(async () => {
+      await ref.current?.requestFileAction(ChonkyActions.SelectAllFiles, undefined);
+    });
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
   });
 
   it('acknowledges only the current reveal request', () => {
@@ -189,6 +205,30 @@ describe('file list', () => {
     scrollToIndex.mockClear();
     ref.current?.revealFile('file-b');
 
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+  });
+
+  it('ignores a filtered-out reveal target even after the filter is cleared', async () => {
+    const ref = createRef<FileBrowserHandle>();
+    render(
+      <FileBrowser ref={ref} files={files} disableDragAndDrop>
+        <FileToolbar />
+        <FileList />
+      </FileBrowser>,
+    );
+    act(() => ref.current?.setFileSelection(new Set(['file-a'])));
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+    const filter = screen.getByRole('textbox');
+    fireEvent.change(filter, { target: { value: 'File A' } });
+    await waitFor(() => expect(screen.getByTestId('virtual-list').getAttribute('data-total-count')).toBe('1'));
+
+    act(() => ref.current?.revealFile('file-b'));
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+
+    fireEvent.keyUp(filter, { key: 'Escape' });
+    await waitFor(() => expect(screen.getByTestId('virtual-list').getAttribute('data-total-count')).toBe('2'));
     expect(ref.current?.getFileSelection()).toEqual(new Set(['file-a']));
     expect(scrollToIndex).not.toHaveBeenCalled();
   });

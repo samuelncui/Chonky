@@ -180,7 +180,7 @@ export const selectHiddenFileIdMap = createSelector(
   [getSearchFilteredFileIds, makeGetFiles(getCleanFileIds), makeGetOptionValue(OptionIds.ShowHiddenFiles)],
   (searchFilteredFileIds, cleanFiles, showHiddenFiles) => {
     const searchFilteredFileIdsSet = new Set(searchFilteredFileIds);
-    const hiddenFileIdMap: any = {};
+    const hiddenFileIdMap: Record<string, true> = Object.create(null);
     cleanFiles.forEach((file) => {
       if (!file) return;
       else if (!searchFilteredFileIdsSet.has(file.id)) {
@@ -204,7 +204,7 @@ const getVisibleFileIds = createSelector(
   (sortedFileIds, hiddenFileIdMap) => sortedFileIds.filter((id) => !id || !hiddenFileIdMap[id]),
 );
 /** Headers retain caller order; members retain the ordinary sorted/filtered order. */
-export const selectDisplayGroups = createSelector(
+const selectFullDisplayGroups = createSelector(
   [selectGrouping, getVisibleFileIds, selectFileGroupMap, selectFileMap],
   (grouping, visibleIds, groupMap, fileMap) => {
     if (!grouping || grouping.sparse) return [];
@@ -223,6 +223,9 @@ export const selectDisplayGroups = createSelector(
     });
   },
 );
+const emptyGroups: ReturnType<typeof selectFullDisplayGroups> = [];
+export const selectDisplayGroups = (state: RootState) =>
+  !state.grouping || state.grouping.sparse ? emptyGroups : selectFullDisplayGroups(state);
 export const selectExpandedGroups = createSelector(
   [selectDisplayGroups, selectGrouping, selectActiveGroupId, selectCollapsedGroupIds],
   (groups, grouping, activeId, collapsed) =>
@@ -231,18 +234,22 @@ export const selectExpandedGroups = createSelector(
       expanded: grouping?.mode === 'single' ? group.id === activeId : !collapsed[group.id],
     })),
 );
-const getDisplayFileIds = createSelector(
-  [getVisibleFileIds, selectGrouping, selectExpandedGroups, selectFileMap],
-  (ids, grouping, groups, fileMap) => {
-    if (grouping?.sparse) {
-      return grouping.sparse.rows
-        .flatMap((row) => (row.kind === 'file' && fileMap[row.fileId] ? [row] : []))
-        .sort((a, b) => a.index - b.index)
-        .map((row) => row.fileId);
-    }
-    return grouping ? groups.flatMap((group) => (group.expanded ? group.fileIds : [])) : ids;
-  },
+const getFullDisplayFileIds = createSelector(
+  [getVisibleFileIds, selectGrouping, selectExpandedGroups],
+  (ids, grouping, groups) => (grouping ? groups.flatMap((group) => (group.expanded ? group.fileIds : [])) : ids),
 );
+const getSparseDisplayFileIds = createSelector(
+  [(state: RootState) => state.grouping?.sparse?.rows, selectFileMap],
+  (rows, fileMap) =>
+    (rows ?? [])
+      .flatMap((row) => (row.kind === 'file' && fileMap[row.fileId] ? [row] : []))
+      .sort((a, b) => a.index - b.index)
+      .map((row) => row.fileId),
+);
+// Sparse membership belongs to the caller. Never run ordinary sorting/search
+// over its files or allocate an array proportional to the virtual total.
+const getDisplayFileIds = (state: RootState) =>
+  state.grouping?.sparse ? getSparseDisplayFileIds(state) : getFullDisplayFileIds(state);
 
 /** The same action context is used by buttons, shortcuts and imperative dispatch. */
 export const getFileActionState = (
@@ -287,17 +294,9 @@ const getLastClickIndex = createSelector(
   [_getLastClick, getDisplayFileIds],
   /** Returns the last click index after ensuring it is actually still valid. */
   (lastClick, displayFileIds) => {
-    const index = lastClick?.index;
-    if (
-      !lastClick ||
-      index === undefined ||
-      index < 0 ||
-      index > displayFileIds.length - 1 ||
-      lastClick.fileId != displayFileIds[index]
-    ) {
-      return null;
-    }
-    return lastClick.index;
+    if (!lastClick) return null;
+    const index = displayFileIds.indexOf(lastClick.fileId);
+    return index < 0 ? null : index;
   },
 );
 

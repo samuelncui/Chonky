@@ -7,7 +7,7 @@ export const initialRootState: RootState = {
 
   externalFileActionHandler: null,
 
-  fileActionMap: {},
+  fileActionMap: Object.create(null),
   fileActionIds: [],
   toolbarItems: [],
   contextMenuItems: [],
@@ -15,20 +15,20 @@ export const initialRootState: RootState = {
   folderChain: [],
 
   files: [],
-  fileMap: {},
+  fileMap: Object.create(null),
   fileIds: [],
   cleanFileIds: [],
 
   grouping: null,
   activeGroupId: undefined,
-  collapsedGroupIds: {},
-  fileGroupMap: {},
+  collapsedGroupIds: Object.create(null),
+  fileGroupMap: Object.create(null),
 
   focusSearchInput: null,
   searchString: '',
   searchMode: 'currentFolder',
 
-  selectionMap: {},
+  selectionMap: Object.create(null),
   disableSelection: false,
   revealFileRequest: null,
 
@@ -37,7 +37,7 @@ export const initialRootState: RootState = {
   sortActionId: null,
   sortOrder: SortOrder.ASC,
 
-  optionMap: {},
+  optionMap: Object.create(null),
 
   thumbnailGenerator: null,
   doubleClickDelay: 300,

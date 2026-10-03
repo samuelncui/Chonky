@@ -156,6 +156,12 @@ importers:
 
   packages/chonky/example:
     dependencies:
+      react-redux:
+        specifier: ^9.3.0
+        version: 9.3.0(@types/react@19.2.18)(react@19.2.8)(redux@5.0.1)
+      '@reduxjs/toolkit':
+        specifier: ^2.12.0
+        version: 2.12.0(react-redux@9.3.0(@types/react@19.2.18)(react@19.2.8)(redux@5.0.1))(react@19.2.8)
       '@samuelncui/chonky':
         specifier: workspace:*
         version: link:..

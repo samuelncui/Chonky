@@ -10,7 +10,7 @@ import { DndEntryState } from '../../types/file-list.types';
 import { ChonkyIconName } from '../../types/icons.types';
 import { useDndHoverOpen, useFileDrop } from '../../util/dnd';
 import { ChonkyIconContext } from '../../util/icon-helper';
-import { c, important, makeLocalChonkyStyles } from '../../util/styles';
+import { composeStyles, important, makeLocalChonkyStyles } from '../../util/styles';
 import { useDndIcon } from '../file-list/FileEntry-hooks';
 import { FolderChainItem } from './FileNavbar-hooks';
 import { ToolbarButton } from './ToolbarButton';
@@ -40,7 +40,7 @@ export const FolderChainButton: React.FC<FolderChainButtonProps> = React.memo(({
   const ChonkyIcon = useContext(ChonkyIconContext);
 
   const classes = useStyles(dndState);
-  const className = c({
+  const className = composeStyles({
     [classes.baseBreadcrumb]: true,
     [classes.disabledBreadcrumb]: disabled,
     [classes.currentBreadcrumb]: current,
@@ -84,9 +84,7 @@ const useStyles = makeLocalChonkyStyles((theme) => ({
     },
   },
   disabledBreadcrumb: {
-    // Constant function here is on purpose. Without the function, the color here
-    // does not override the `baseBreadcrumb` color from above.
-    color: () => important(theme.palette.text.disabled),
+    color: important(theme.palette.text.disabled),
   },
   currentBreadcrumb: {
     textDecoration: important('underline'),

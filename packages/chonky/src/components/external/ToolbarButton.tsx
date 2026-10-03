@@ -14,7 +14,7 @@ import { ChonkyIconName } from '../../types/icons.types';
 import { useFileActionProps, useFileActionTrigger } from '../../util/file-actions';
 import { useLocalizedFileActionStrings } from '../../util/i18n';
 import { ChonkyIconContext } from '../../util/icon-helper';
-import { c, important, makeGlobalChonkyStyles } from '../../util/styles';
+import { composeStyles, important, makeGlobalChonkyStyles } from '../../util/styles';
 
 export interface ToolbarButtonProps {
   className?: string;
@@ -43,12 +43,12 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = React.memo((props) =>
     </div>
   ) : null;
 
-  const className = c({
-    [externalClassName ?? '']: true,
-    [classes.baseButton]: true,
-    [classes.iconOnlyButton]: iconOnly,
-    [classes.activeButton]: !!active,
-  });
+  const className = composeStyles(
+    classes.baseButton,
+    iconOnly && classes.iconOnlyButton,
+    active && !disabled && !!onClick && classes.activeButton,
+    externalClassName,
+  );
   return (
     <Button
       aria-label={tooltip || text}

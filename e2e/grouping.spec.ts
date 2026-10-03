@@ -61,6 +61,7 @@ test('scopes range, select-all and context actions to the current group', async 
 test('switches layouts and filters without mixing groups', async ({ page }) => {
   await expect(page.getByLabel('Group layout')).toHaveCount(0);
   await page.getByRole('button', { name: 'Options', exact: true }).click();
+  await expect(page.getByRole('menuitem', { name: 'Switch to Grid', exact: true })).toHaveCount(0);
   await page.getByRole('menuitem', { name: 'One group at a time', exact: true }).click();
   await expect(page.locator('[data-chonky-file-id]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Summer coast', exact: true }).click();
@@ -108,6 +109,43 @@ test('virtualizes groups and reveals the last file with header-aware indices', a
   expect(await page.locator('[data-test-id="file-entry"]').count()).toBeLessThan(100);
 });
 
+test('does not expand or select a collapsed or filtered-out reveal target', async ({ page }) => {
+  const scroller = page.locator('.chonky-fileListWrapper [data-virtuoso-scroller="true"]');
+  const heading = page.getByRole('button', { name: 'Project archive', exact: true });
+  await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await heading.click();
+  await expect(heading).toHaveAttribute('aria-expanded', 'false');
+  await scroller.evaluate((element) => element.scrollTo({ top: 0 }));
+  await file(page, 'sample-0-0').click();
+  await page.getByRole('button', { name: 'Reveal last file' }).click();
+  await expect(page.getByTestId('duplicate-selection-count')).toHaveText('1');
+  expect(await scroller.evaluate((element) => element.scrollTop)).toBe(0);
+  await page.getByRole('button', { name: 'Actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Open selection', exact: true }).click();
+  await expect(page.getByTestId('duplicate-result')).toContainText('OpenFiles event: coast.jpg.');
+  await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect(heading).toHaveAttribute('aria-expanded', 'false');
+  await expect(file(page, 'sample-3-2')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Reset demo', exact: true }).click();
+  await expect(page.getByTestId('duplicate-selection-count')).toHaveText('0');
+  await expect(page.getByTestId('duplicate-result')).toHaveText('Select files in a group to get started.');
+  await file(page, 'sample-0-0').click();
+  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  const filter = page.getByPlaceholder('Filter', { exact: true });
+  await filter.fill('coast');
+  await expect(page.getByRole('button', { name: 'Summer coast', exact: true })).toContainText('2 / 3 files');
+  await expect(heading).toHaveCount(0);
+  await page.getByRole('button', { name: 'Reveal last file' }).click();
+  await expect(page.getByTestId('duplicate-selection-count')).toHaveText('1');
+  await filter.press('Escape');
+  await page.getByRole('button', { name: 'Actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Open selection', exact: true }).click();
+  await expect(page.getByTestId('duplicate-result')).toContainText('OpenFiles event: coast.jpg.');
+  await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect(heading).toHaveAttribute('aria-expanded', 'true');
+});
+
 test('keeps group controls reachable at a narrow width', async ({ page }) => {
   await page.setViewportSize({ width: 520, height: 850 });
   await file(page, 'sample-0-0').click();
@@ -118,6 +156,9 @@ test('keeps group controls reachable at a narrow width', async ({ page }) => {
 
 test('pages the caller-loaded GroupedFileList and clears selection on group changes', async ({ page }) => {
   await page.getByLabel('Grouping API').selectOption('loaded');
+  await page.getByRole('button', { name: 'Options', exact: true }).click();
+  await expect(page.getByRole('menuitem', { name: 'Switch to Grid', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Summer coast', exact: false }).click();
   await expect(page.getByTestId('loaded-copies')).toHaveText('1');
   await expect(file(page, 'sample-0-0')).toBeVisible();
@@ -141,6 +182,7 @@ test('keeps full group membership when a filter hides other copies', async ({ pa
   await page.getByPlaceholder('Filter', { exact: true }).fill('coast-copy');
   await expect(file(page, 'sample-0-1')).toBeVisible();
   await expect(file(page, 'sample-0-0')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Summer coast', exact: true })).toContainText('1 / 3 files');
   await file(page, 'sample-0-1').click();
   await actions(page, 'Summer coast').getByRole('button', { name: 'Keep only this' }).click();
   await expect(page.getByTestId('duplicate-file-count')).toHaveText('9');
