@@ -28,6 +28,10 @@ This is a maintained fork of [Chonky] by [TimboKZ].
 [Chonky]: https://github.com/TimboKZ/Chonky
 [TimboKZ]: https://github.com/TimboKZ
 
+![Chonky live demo showing the file browser and interactive examples](./docs/images/chonky-live-demo.png)
+
+### [Live Demo →](https://samuelncui.github.io/Chonky/)
+
 ## Why this fork
 
 The upstream project is no longer actively maintained. This fork keeps Chonky
@@ -64,7 +68,6 @@ export function MyComponent() {
 
 See the runnable [example](./packages/chonky/example) and the
 [`@samuelncui/chonky` package documentation](./packages/chonky/README.md).
-Try the [live demo](https://samuelncui.github.io/Chonky/).
 The upstream [Chonky documentation](https://chonky.io/) remains useful for
 general concepts, but APIs and compatibility may differ from this fork.
 
@@ -79,7 +82,8 @@ pnpm build
 pnpm --filter @samuelncui/chonky-example dev
 ```
 
-Open [the demo](http://127.0.0.1:4173/). Its navigation covers ordinary files,
+After starting the local server, open `http://127.0.0.1:4173/`.
+Its navigation covers ordinary files,
 grouped files, sparse paging, and presentation extensions. All fixtures and
 operations stay in browser memory and can be reset.
 See [grouped-list integration](./packages/chonky/README.md#grouped-lists)
