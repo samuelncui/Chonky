@@ -92,7 +92,7 @@ the demo consumes their built exports.
 
 Run `pnpm candidate` for source checks, one pack/build per package, development
 browser verification and the production `/Chonky/` browser gate. The Demo workflow
-reuses the approved Tests candidate for GitHub Pages through a manual dispatch
+automatically reuses the successful `master` Tests candidate for GitHub Pages
 with its run ID. See [publication gates](CONTRIBUTING.md#automated-release-checks).
 
 ## License

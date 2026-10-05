@@ -1,6 +1,10 @@
 name: Demo
 
 on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
     inputs:
       candidate_run_id:
@@ -12,12 +16,14 @@ permissions:
   contents: read
   actions: read
 
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
-
 jobs:
   prepare:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       contains(fromJSON('["push", "workflow_dispatch"]'), github.event.workflow_run.event) &&
+       github.event.workflow_run.head_sha == github.sha)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -34,7 +40,7 @@ jobs:
           node-version: 24
       - uses: ./.github/actions/reuse-candidate
         with:
-          candidate_run_id: ${{ inputs.candidate_run_id }}
+          candidate_run_id: ${{ github.event.workflow_run.id || inputs.candidate_run_id }}
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -42,6 +48,9 @@ jobs:
 
   deploy:
     needs: prepare
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

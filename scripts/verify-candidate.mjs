@@ -15,6 +15,18 @@ const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const readJSON = (filename) => JSON.parse(fs.readFileSync(filename, 'utf8'));
 const isID = (value) => /^[1-9][0-9]*$/.test(String(value)) && Number.isSafeInteger(Number(value));
 
+export function candidateRunID(input, releaseBody = '') {
+  if (input !== undefined && input !== '') {
+    assert(isID(input), 'Set candidate_run_id to the approved Tests run ID');
+    return String(input);
+  }
+  const markers = [...releaseBody.matchAll(/<!--\s*candidate_run_id:\s*([\s\S]*?)-->/g)];
+  assert(markers.length === 1, 'Release notes must identify one approved <!-- candidate_run_id: ID -->');
+  const runID = markers[0][1].trim();
+  assert(isID(runID), 'Release candidate_run_id must be a valid Tests run ID');
+  return runID;
+}
+
 function sourceIdentity(repository, commit, baseline, tag) {
   verifyRelease(repository, commit, baseline, tag);
   return {
@@ -205,9 +217,8 @@ if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import
           process.env.RELEASE_BASE_COMMIT,
           process.env.RELEASE_TAG || undefined,
         ),
-        runId: process.env.CANDIDATE_RUN_ID,
+        runId: candidateRunID(process.env.CANDIDATE_RUN_ID, process.env.CANDIDATE_RELEASE_BODY),
       };
-      assert(isID(expected.runId), 'Set candidate_run_id to the approved Tests run ID');
       const [run, workflow, result] = await Promise.all([
         github(`runs/${expected.runId}`),
         github('workflows/tests.yml'),

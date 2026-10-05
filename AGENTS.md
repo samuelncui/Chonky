@@ -13,7 +13,7 @@ for final integration; a new commit alone does not invalidate independent eviden
 ## Release and Demo publication
 
 - For every release request, execute the [Release SOP](CONTRIBUTING.md#release-sop), including source/history and content review, exact-source checks and review fixes.
-- Obtain exact-source push approval before GitHub CI; tag, Release, npm and Pages approval are separate. Tests verifies and seals one candidate on `master`; Publish and Demo require its run ID and reuse its exact files under [candidate verification](CONTRIBUTING.md#automated-release-checks).
+- Obtain exact-source push approval before GitHub CI; a `master` push also needs approval for its automatic Pages deployment. Tests verifies and seals one candidate; Demo deploys it automatically and a published Release triggers Publish using the approved run ID under [candidate verification](CONTRIBUTING.md#automated-release-checks).
 - Keep source checks before the core and icon `pnpm pack` steps; their prepack hooks build each package once. Preserve the development-browser and production `/Chonky/` checks. Consumers verify candidate identity and checksums without rebuilding, retesting or choosing replacement source.
-- Dispatch Publish only at the approved version tag and Demo at the approved commit's ref. Protect the `npm` and `github-pages` environments with required reviewers. Candidate creation or source-push approval does not authorize publication or deployment.
+- Publish only at the approved version tag and deploy Demo only for the approved commit. Manual dispatch remains available for an explicitly selected candidate. Source-push approval does not authorize tag, Release or npm publication.
 - Preserve published history and versions. The SOP's local backup and squash procedure applies only to unpublished work; do not publish backup refs.

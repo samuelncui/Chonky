@@ -46,6 +46,10 @@ source, dependencies, configuration, fixtures and environment before reusing the
 requires broader checks. Native output and a concise command/result summary suffice for routine
 checks; releases and performance comparisons retain their existing evidence formats.
 
+For workflow edits, validate GitHub syntax and expression contexts before pushing with
+`go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -shellcheck= -pyflakes=`.
+Existing shell checks own script diagnostics; this check does not rebuild packages.
+
 Maintain tests and safe fixtures with their implementation, using the existing runners. Remove
 obsolete assertions and same-boundary duplicates, and preserve the distinct boundaries below.
 Reusable scripts stay in the repository; supply private hosts, paths and inputs through parameters.
@@ -144,8 +148,9 @@ later local improvements belong to a subsequent release.
    pushing, then wait for CI. For source review, use an approved branch and a pull request targeting
    `master`. A pull request can test a merge commit and never produces a publishable candidate;
    verify the final approved commit through a successful Tests run on `master`.
-   Record that run ID and attempt. Source-push approval does not authorize tags, Release creation,
-   npm publication or [Pages deployment](#demo-deployment).
+   A `master` push automatically [deploys Pages](#demo-deployment) after Tests succeeds, so its
+   approval must cover the exact source and Demo. Record that run ID and attempt. Source-push
+   approval does not authorize tags, Release creation or npm publication.
 6. **Review packages and approve publication.** Download the immutable candidate from the
    successful [Tests workflow](.github/workflows/tests.yml) and inspect both tarballs, exports/types,
    dependency metadata, documentation, licenses and bundled content, including source maps where
@@ -175,7 +180,7 @@ The manifest records repository, Tests workflow/ref, event, run/attempt, source 
 baseline, matching package version, lockfile SHA-256, every file's SHA-256 and each tarball's SHA-512.
 Pull requests and other refs cannot produce reusable candidates.
 
-Publish and Demo require `candidate_run_id` and check out their selected ref's exact commit with
+Publish and Demo use a specific candidate run ID and check out its exact commit with
 complete history. The shared candidate action checks the run through the GitHub API: same repository
 and head repository, Tests workflow ID/path, `master`, trusted event, successful completion, exact
 commit and current run attempt. It selects the immutable artifact by ID and rejects missing,
@@ -225,33 +230,35 @@ that a baseline was reviewed. Publication approvals in the SOP remain required.
 ## Publishing
 
 Both npm packages use the same version. After [Release SOP](#release-sop) acceptance
-and explicit publication approval, create a GitHub release whose tag is `v<version>`
-after candidate CI passes. Manually dispatch Publish at that version tag with the approved
-`candidate_run_id`; a branch dispatch is rejected. The tag must resolve to the candidate commit
-and match both versions. The `npm` environment must have required reviewers; approval covers the
-exact candidate and publication. Publish verifies and publishes the candidate's core tarball before
+and explicit publication approval, publish a GitHub Release whose tag is `v<version>`
+after candidate CI passes. Include `<!-- candidate_run_id: ID -->` in the Release notes with the
+approved Tests run ID. The published Release automatically triggers Publish; it never chooses
+the latest run. A missing, ambiguous or invalid ID fails explicitly. Manual dispatch at that version
+tag remains available with `candidate_run_id`; a branch dispatch is rejected. The tag must resolve
+to the candidate commit and match both versions. Publish verifies and publishes the candidate's core tarball before
 the icon tarball through npm trusted publishing. Release creation does not trigger publication.
 
 Configure each npm package with the GitHub repository `samuelncui/Chonky` and
 workflow filename `publish.yml` as its trusted publisher. Enable `npm publish`
 under the publisher's allowed actions; stage-only permission cannot run this
-workflow's direct publish steps. If an environment restriction is configured on the publisher,
-use `npm`. The workflow grants OIDC write permission only to the protected publish job and does
+workflow's direct publish steps. The workflow grants OIDC write permission only to the publish job and does
 not require an npm token in GitHub secrets.
 
 ## Demo deployment
 
-Manually dispatch Demo at the approved commit's branch or tag with the approved
-`candidate_run_id`. It verifies the candidate, uploads only its `pages/` files and deploys
-with the official GitHub Pages actions. Enable GitHub Actions as the Pages publishing source
-and required reviewers on the `github-pages` environment. Write permissions remain confined
-to the deploy job. Source pushes and package Releases do not trigger deployment.
+After a trusted `master` Tests run succeeds, Demo automatically verifies that run's candidate,
+uploads only its `pages/` files and deploys with the official GitHub Pages actions. Failed runs,
+pull requests and runs for a superseded commit do not deploy. Manual dispatch remains available
+at an approved commit's branch or tag with `candidate_run_id`. Enable GitHub Actions as the Pages
+publishing source. Write permissions and deployment concurrency remain confined to the deploy job;
+ineligible runs cannot cancel a valid deployment. Package Releases do not themselves deploy a Demo.
 
 Deploy only the exact source commit and Demo content covered by explicit approval. Before approval,
 inspect the candidate's scanned production `/Chonky/` output for public content. Select a branch
 or tag resolving to the approved commit and verify the candidate run, manifest and uploaded
 Pages artifact. A ref that has moved to another commit is rejected; do not substitute a newer
 `master` or dirty local build.
+Obtain approval covering the exact source and Demo before a `master` push or manual dispatch.
 Earlier package or Pages approval does not authorize later Demo changes.
 
 To verify the deployed site with the same browser suite:

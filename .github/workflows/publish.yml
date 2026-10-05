@@ -1,6 +1,8 @@
 name: Publish
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       candidate_run_id:
@@ -16,7 +18,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: npm
     permissions:
       contents: read
       actions: read
@@ -24,7 +25,8 @@ jobs:
     env:
       RELEASE_COMMIT: ${{ github.sha }}
       RELEASE_BASE_COMMIT: ${{ vars.RELEASE_BASE_COMMIT }}
-      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+      CANDIDATE_RELEASE_BODY: ${{ github.event.release.body }}
     steps:
       - uses: actions/checkout@v7
         with:

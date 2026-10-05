@@ -6,7 +6,24 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath, URL } from 'node:url';
-import { sealCandidate, selectCandidate, verifyCandidate } from './verify-candidate.mjs';
+import { candidateRunID, sealCandidate, selectCandidate, verifyCandidate } from './verify-candidate.mjs';
+
+test('candidate selection uses the explicit dispatch input or approved Release marker', () => {
+  assert.equal(candidateRunID('42'), '42');
+  assert.equal(candidateRunID('', '# Release\n<!-- candidate_run_id: 42 -->\nChanges'), '42');
+  assert.equal(candidateRunID(undefined, '<!--\n candidate_run_id: 42\n -->'), '42');
+  assert.throws(() => candidateRunID('invalid', '<!-- candidate_run_id: 42 -->'), /approved Tests run ID/);
+  for (const body of [
+    '',
+    'https://github.com/samuelncui/Chonky/actions/runs/42',
+    '<!-- candidate_run_id: 42 --><!-- candidate_run_id: 43 -->',
+  ]) {
+    assert.throws(() => candidateRunID('', body), /identify one approved/);
+  }
+  for (const id of ['0', '1.5', '42; echo invalid', '9007199254740992']) {
+    assert.throws(() => candidateRunID('', `<!-- candidate_run_id: ${id} -->`), /valid Tests run ID/);
+  }
+});
 
 function metadata() {
   const expected = {

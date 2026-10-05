@@ -2,8 +2,8 @@ name: Reuse verified Chonky candidate
 description: Select the approved Tests artifact and verify its complete file inventory.
 inputs:
   candidate_run_id:
-    description: Successful trusted Tests workflow run for the exact approved commit
-    required: true
+    description: Successful trusted Tests run; Release events supply the ID in their notes instead
+    required: false
 runs:
   using: composite
   steps:
