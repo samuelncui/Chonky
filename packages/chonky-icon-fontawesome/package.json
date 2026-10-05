@@ -27,8 +27,7 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build && tsc6 --project tsconfig.build.json",
-    "pretypecheck": "pnpm --filter @samuelncui/chonky build",
-    "typecheck": "tsc6 --project tsconfig.json",
+    "typecheck": "tsc6 --project tsconfig.check.json",
     "test": "vitest run --passWithNoTests",
     "prepack": "pnpm run build"
   },

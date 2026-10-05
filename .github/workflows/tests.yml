@@ -5,14 +5,20 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   tests:
+    if: github.event_name == 'pull_request' || (github.repository == 'samuelncui/Chonky' && github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      RELEASE_COMMIT: ${{ github.sha }}
+      RELEASE_BASE_COMMIT: ${{ vars.RELEASE_BASE_COMMIT }}
+      RELEASE_PREVIOUS_TIP: ${{ github.event.before }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -20,6 +26,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - name: Verify candidate source and squash boundary
+        if: github.event_name != 'pull_request'
+        run: node scripts/verify-release.mjs
       - name: Install pinned content scanner
         run: |
           bash scripts/install-gitleaks.sh "$RUNNER_TEMP/gitleaks"
@@ -30,5 +39,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:release
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm check
-      - run: pnpm e2e
+      - run: pnpm candidate
+      - name: Scan exact package and Pages files
+        run: |
+          node scripts/check-content.mjs artifacts output/candidate/packages
+          node scripts/check-content.mjs artifacts packages/chonky/example/dist
+      - name: Seal exact verified candidate
+        if: github.event_name != 'pull_request'
+        run: node scripts/verify-candidate.mjs seal output/candidate
+      - uses: actions/upload-artifact@v7
+        if: github.event_name != 'pull_request'
+        with:
+          name: chonky-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/candidate/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30

@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "build": "pnpm --recursive --if-present run build",
+    "pack:candidate": "rm -rf output/candidate && mkdir -p output/candidate/packages && pnpm --dir packages/chonky pack --out ../../output/candidate/packages/chonky.tgz && pnpm --dir packages/chonky-icon-fontawesome pack --out ../../output/candidate/packages/chonky-icon-fontawesome.tgz",
+    "candidate": "pnpm check && pnpm pack:candidate && pnpm e2e && pnpm e2e:pages",
     "e2e": "playwright test",
     "e2e:pages": "pnpm --filter @samuelncui/chonky-example build --base=/Chonky/ && playwright test --config=playwright.pages.config.ts",
     "typecheck": "pnpm --recursive --if-present run typecheck",
@@ -19,7 +21,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm lint && pnpm test && pnpm build && pnpm typecheck"
+    "check": "pnpm format:check && pnpm lint && pnpm test && pnpm typecheck"
   },
   "homepage": "https://github.com/samuelncui/Chonky#readme",
   "author": {

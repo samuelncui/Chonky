@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --force --host 127.0.0.1 --port 4173 --strictPort",
-    "typecheck": "tsc6 --noEmit"
+    "typecheck": "tsc6 --project tsconfig.check.json"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",

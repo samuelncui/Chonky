@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "@samuelncui/chonky": ["../src/index.ts"],
+      "@samuelncui/chonky-icon-fontawesome": ["../../chonky-icon-fontawesome/src/index.ts"]
+    }
+  }
+}

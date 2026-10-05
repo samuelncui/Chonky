@@ -90,10 +90,10 @@ See [grouped-list integration](./packages/chonky/README.md#grouped-lists)
 for the API and selection semantics. Rebuild the packages after library changes;
 the demo consumes their built exports.
 
-Run `pnpm check` and `pnpm e2e` for static, unit and browser verification.
-Run `pnpm e2e:pages` to build and test the static demo under its deployed
-`/Chonky/` path. The Demo workflow deploys that tested output to GitHub Pages
-after a push to `master`, or a manual dispatch.
+Run `pnpm candidate` for source checks, one pack/build per package, development
+browser verification and the production `/Chonky/` browser gate. The Demo workflow
+reuses the approved Tests candidate for GitHub Pages through a manual dispatch
+with its run ID. See [publication gates](CONTRIBUTING.md#automated-release-checks).
 
 ## License
 

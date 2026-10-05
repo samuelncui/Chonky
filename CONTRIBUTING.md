@@ -8,9 +8,7 @@ Use Node.js 24 and Corepack. The repository pins pnpm in `package.json`.
 corepack enable
 pnpm install --frozen-lockfile
 pnpm exec playwright install chromium
-pnpm check
-pnpm e2e
-pnpm e2e:pages
+pnpm candidate
 ```
 
 During development, run the main package build in watch mode:
@@ -20,9 +18,44 @@ pnpm --filter @samuelncui/chonky dev
 ```
 
 The browser tests run against the demo application in
-`packages/chonky/example`. Before submitting a change, run `pnpm check`,
-`pnpm e2e` and `pnpm e2e:pages`. The last command tests the production build
-under `/Chonky/`, including relative navigation and assets.
+`packages/chonky/example`. `pnpm check` checks formatting, lint, unit tests and
+source/test types without building. Both the icon and example source typechecks
+read source exports; the icon declaration build checks the core's built public declarations.
+
+`pnpm candidate` runs those checks, then `pnpm pack:candidate` packs the core
+before the icon package. Each prepack hook builds its package once. It then runs
+`pnpm e2e` against the built public exports on the development server and
+`pnpm e2e:pages` against the production `/Chonky/` build, including navigation,
+reloads and assets. Tarballs are fresh outputs in `output/candidate/packages/`.
+`pnpm build` remains available for development without packing.
+
+The Tests workflow runs this candidate gate once for pull requests and trusted
+`master` runs. Only trusted `master` push/manual runs can seal a reusable artifact
+after the source and artifact content scans. During iteration, use the affected
+native checks and retain unaffected evidence; do not repeat full gates for the
+same unchanged inputs.
+
+## Test maintenance
+
+During development, run affected Vitest files, Node tool tests and type checks; add browser checks
+when their boundary changes. Diagnose failures and rerun only the failed boundary and affected
+callers after the final relevant edit. Batch related edits before expensive runs. Finish review
+before one final `pnpm candidate` gate, normally in Tests CI; do not duplicate unchanged full runs
+locally and in CI. A new commit alone does not invalidate independent results: review relevant
+source, dependencies, configuration, fixtures and environment before reusing them. Unknown impact
+requires broader checks. Native output and a concise command/result summary suffice for routine
+checks; releases and performance comparisons retain their existing evidence formats.
+
+Maintain tests and safe fixtures with their implementation, using the existing runners. Remove
+obsolete assertions and same-boundary duplicates, and preserve the distinct boundaries below.
+Reusable scripts stay in the repository; supply private hosts, paths and inputs through parameters.
+Keep credentials and sensitive reports outside tracked source and public artifacts. Automated
+checks do not grant source-push, Demo or publication permission or replace required visual review.
+
+Measure baseline and candidate serially on the same idle host, with the same runtime/browser,
+fixtures and native runner settings. Use one benchmark invocation per source and the runner's
+calibration; investigate anomalies before repeating affected measurements. Do not add a fixed
+sample quota, repeat unchanged comparisons or silently replace the accepted baseline.
 
 ## Test boundaries
 
@@ -98,28 +131,30 @@ later local improvements belong to a subsequent release.
    Reconcile and review again if the tip moves. Freeze a clean exact commit and matching package
    versions. Use an isolated checkout and the frozen lockfile from [development setup](#development-setup);
    do not use ignored local output as package or Demo input.
-4. **Run gates and finish review.** Run `pnpm check`, `pnpm e2e` and `pnpm e2e:pages` against the
-   final source, plus the [automated release checks](#automated-release-checks) for the intended tag. Review and
-   fix until no unresolved, unaccepted finding remains; source fixes require a new clean commit and
-   verification of the final source. Preserve the [test limitations](#test-boundaries), including
-   Chromium-only browser acceptance, and report exact failures, skips and unrun checks.
+4. **Finish review, then run the final gate.** Review and fix with affected local checks until no
+   unresolved, unaccepted finding remains, following [test maintenance](#test-maintenance).
+   The Tests workflow runs `pnpm candidate` and the [automated release checks](#automated-release-checks)
+   once on the final source. Reuse unaffected evidence with its original identity and the reason it
+   remains valid; refresh changed boundaries after a fix. Preserve the
+   [test limitations](#test-boundaries), including Chromium-only browser acceptance, and report
+   exact failures, skips and unrun checks. An intentional local full gate does not require a
+   duplicate CI run unless it protects a distinct boundary.
 5. **Approve source push before CI.** The [Tests workflow](.github/workflows/tests.yml) needs
    the proposed source on GitHub. Obtain explicit approval for that exact source push before
-   pushing, then wait for CI. For source review without Pages deployment, use an approved branch
-   and a pull request targeting `master`. Record the tested checkout; a pull request can test a
-   merge commit, so verify that acceptance covers the final approved tree. A push to `master`
-   also [deploys Pages](#demo-deployment) and needs approval for that exact source and Demo before
-   the push. Source-push approval does not authorize tags, Release creation or npm publication.
-6. **Review packages and approve publication.** Use the pack steps in the
-   [Publish workflow](.github/workflows/publish.yml) and inspect both tarballs, exports/types,
+   pushing, then wait for CI. For source review, use an approved branch and a pull request targeting
+   `master`. A pull request can test a merge commit and never produces a publishable candidate;
+   verify the final approved commit through a successful Tests run on `master`.
+   Record that run ID and attempt. Source-push approval does not authorize tags, Release creation,
+   npm publication or [Pages deployment](#demo-deployment).
+6. **Review packages and approve publication.** Download the immutable candidate from the
+   successful [Tests workflow](.github/workflows/tests.yml) and inspect both tarballs, exports/types,
    dependency metadata, documentation, licenses and bundled content, including source maps where
    present. Apply the content audit to packaged files as well as source, including shipped generated
    code and dependency sources; do not blanket-exclude them.
-   Packing rebuilds the packages; inspect fresh outputs and record their integrity.
-   Obtain explicit approval for the exact source/version, Release text and package publication,
-   with [Demo deployment](#demo-deployment) separately included when requested. The Publish workflow
-   rebuilds and packs from the release tag, so retain its commit, package integrity and actual results;
-   local checks alone do not certify its rebuilt tarballs. Never republish a shipped npm version.
+   Record the manifest, package integrity and exact production Pages files. Obtain explicit approval
+   for that source/version, candidate run ID, Release text and package publication, with
+   [Demo deployment](#demo-deployment) separately included when requested. Publish and Demo reuse
+   that candidate; they never build or retest it. Never republish a shipped npm version.
 7. **Verify delivery and clean owned resources.** Check the public tag and both npm versions against
    the approved source and package integrity. For an approved Pages deployment, verify the exact
    source and Demo artifact through the [deployment procedure](#demo-deployment). Record actual
@@ -128,20 +163,34 @@ later local improvements belong to a subsequent release.
 
 ### Automated release checks
 
-The Publish and Demo workflows check out the event's exact commit with complete history. Before
-building, they verify source identity, cleanliness, matching versions and the squash boundary, then
-scan source, reachable history and commit messages. They run `pnpm test:release`, `pnpm check`,
-`pnpm e2e` and `pnpm e2e:pages`. After the last build/pack, they recheck source identity and scan
-the actual tarballs or Pages directory before publishing/uploading; Publish also scans its Demo
-output. Package SHA-512 hashes and artifact inventory SHA-256 hashes identify the checked inputs.
-The Tests workflow runs the same content scans and release regression tests on proposed source.
+Tests checks out the exact event commit with complete history, scans source, reachable history and
+commit messages, and runs the native release regression tests plus `pnpm candidate`. Trusted
+`master` runs also verify clean source, matching versions and the squash boundary before and after
+the gate. Both tarballs and the exact production Pages directory pass the content scans before sealing.
+
+A successful trusted push/manual Tests run uploads one immutable
+`chonky-candidate-<run-id>-<attempt>` artifact, retained for 30 days. It contains only
+`packages/chonky.tgz`, `packages/chonky-icon-fontawesome.tgz`, `pages/` and `manifest.json`.
+The manifest records repository, Tests workflow/ref, event, run/attempt, source commit, reviewed
+baseline, matching package version, lockfile SHA-256, every file's SHA-256 and each tarball's SHA-512.
+Pull requests and other refs cannot produce reusable candidates.
+
+Publish and Demo require `candidate_run_id` and check out their selected ref's exact commit with
+complete history. The shared candidate action checks the run through the GitHub API: same repository
+and head repository, Tests workflow ID/path, `master`, trusted event, successful completion, exact
+commit and current run attempt. It selects the immutable artifact by ID and rejects missing,
+duplicate, expired, incomplete or mismatched inputs. After downloading, it checks source cleanliness,
+baseline, versions, lockfile, manifest identity and the complete file inventory and checksums.
+Consumers never install package dependencies, rebuild, pack, scan content again or rerun test suites.
+They cannot choose a newer ref, previous attempt, PR artifact or local replacement. A missing or
+expired candidate requires a new approved Tests run on the same source; no fallback is allowed.
 
 Before an approved source push or publication, explicitly configure the repository Actions variable
 `RELEASE_BASE_COMMIT` with the full SHA of the reviewed, rechecked public tip from step 3. The gate
-accepts that unchanged commit or one non-merge commit whose sole parent is the baseline. A Pages
+accepts that unchanged commit or one non-merge commit whose sole parent is the baseline. A candidate
 push must also report that baseline as its previous tip. Missing or stale baselines block publication;
 the workflows never select or advance a baseline, create backups, squash commits or rewrite refs.
-Keep the baseline for the same approved candidate's Pages/npm runs. Selecting a new baseline is a
+Keep the same baseline for candidate creation and its Pages/npm runs. Selecting a new baseline is a
 separate review decision, never a workaround for rejected unpublished history.
 
 For local checks, use the same isolated checkout and explicitly selected full SHAs:
@@ -158,8 +207,8 @@ pnpm test:release
 
 Before squashing, `node scripts/check-content.mjs source . <base>..<tip>` audits the unpublished
 range and its messages, including dirty/nonignored new source. That audit is not clean-source
-acceptance. After packing both packages into a fresh directory, run
-`node scripts/check-content.mjs artifacts <package-directory>`, and after `pnpm e2e:pages` run
+acceptance. After `pnpm pack:candidate`, run
+`node scripts/check-content.mjs artifacts output/candidate/packages`, and after `pnpm e2e:pages` run
 `node scripts/check-content.mjs artifacts packages/chonky/example/dist`.
 
 The installer checks fixed scanner archive and upstream-rule hashes; every scan rechecks the
@@ -177,30 +226,32 @@ that a baseline was reviewed. Publication approvals in the SOP remain required.
 
 Both npm packages use the same version. After [Release SOP](#release-sop) acceptance
 and explicit publication approval, create a GitHub release whose tag is `v<version>`
-after CI passes. The Publish workflow runs the automated release checks,
-builds and scans both tarballs, and publishes the core package before the icon package
-through npm trusted publishing.
+after candidate CI passes. Manually dispatch Publish at that version tag with the approved
+`candidate_run_id`; a branch dispatch is rejected. The tag must resolve to the candidate commit
+and match both versions. The `npm` environment must have required reviewers; approval covers the
+exact candidate and publication. Publish verifies and publishes the candidate's core tarball before
+the icon tarball through npm trusted publishing. Release creation does not trigger publication.
 
 Configure each npm package with the GitHub repository `samuelncui/Chonky` and
 workflow filename `publish.yml` as its trusted publisher. Enable `npm publish`
 under the publisher's allowed actions; stage-only permission cannot run this
-workflow's direct publish steps. The workflow uses OIDC and does not require
-an npm token in GitHub secrets.
+workflow's direct publish steps. If an environment restriction is configured on the publisher,
+use `npm`. The workflow grants OIDC write permission only to the protected publish job and does
+not require an npm token in GitHub secrets.
 
 ## Demo deployment
 
-The Demo workflow builds and tests the static demo after pushes to `master`
-and manual dispatches. It uploads only `packages/chonky/example/dist` and
-deploys it with the official GitHub Pages actions. Enable GitHub Actions as
-the Pages publishing source in repository settings. Deployment uses the
-`github-pages` environment and grants write permissions only to the deploy job.
+Manually dispatch Demo at the approved commit's branch or tag with the approved
+`candidate_run_id`. It verifies the candidate, uploads only its `pages/` files and deploys
+with the official GitHub Pages actions. Enable GitHub Actions as the Pages publishing source
+and required reviewers on the `github-pages` environment. Write permissions remain confined
+to the deploy job. Source pushes and package Releases do not trigger deployment.
 
 Deploy only the exact source commit and Demo content covered by explicit approval. Before approval,
-inspect and scan the production `/Chonky/` output built by `pnpm e2e:pages` for public content.
-A push to `master` automatically deploys Pages, so obtain that approval before the push. For manual
-dispatch, select a branch or tag resolving to the approved commit and verify the run's commit
-and uploaded Demo artifact. The workflow builds and tests that checkout; a package Release
-does not itself deploy its tag's Demo. Do not substitute a newer `master` or dirty local build.
+inspect the candidate's scanned production `/Chonky/` output for public content. Select a branch
+or tag resolving to the approved commit and verify the candidate run, manifest and uploaded
+Pages artifact. A ref that has moved to another commit is rejected; do not substitute a newer
+`master` or dirty local build.
 Earlier package or Pages approval does not authorize later Demo changes.
 
 To verify the deployed site with the same browser suite:

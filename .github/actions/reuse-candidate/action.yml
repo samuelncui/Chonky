@@ -1,0 +1,26 @@
+name: Reuse verified Chonky candidate
+description: Select the approved Tests artifact and verify its complete file inventory.
+inputs:
+  candidate_run_id:
+    description: Successful trusted Tests workflow run for the exact approved commit
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Select trusted candidate
+      id: selection
+      shell: bash
+      env:
+        CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+        GH_TOKEN: ${{ github.token }}
+      run: node scripts/verify-candidate.mjs select "$RUNNER_TEMP/chonky-selection.json"
+    - uses: actions/download-artifact@v8
+      with:
+        artifact-ids: ${{ steps.selection.outputs.artifact_id }}
+        run-id: ${{ steps.selection.outputs.run_id }}
+        repository: ${{ github.repository }}
+        github-token: ${{ github.token }}
+        path: ${{ runner.temp }}/chonky-candidate
+    - name: Verify exact candidate inputs
+      shell: bash
+      run: node scripts/verify-candidate.mjs verify "$RUNNER_TEMP/chonky-candidate" "$RUNNER_TEMP/chonky-selection.json"
