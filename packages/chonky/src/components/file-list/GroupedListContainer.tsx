@@ -18,7 +18,7 @@ import { useLocalizedFileActionStrings } from '../../util/i18n';
 import { makeLocalChonkyStyles } from '../../util/styles';
 import { ToolbarButton } from '../external/ToolbarButton';
 import { SmartFileEntry } from './FileEntry';
-import { useListContainerStyles } from './ListContainer';
+import { listComponents, useListContainerStyles } from './ListContainer';
 
 type GroupRow =
   | { key: string; group: FileListGroup & { totalCount: number }; expanded: boolean }
@@ -128,6 +128,7 @@ export const GroupedListContainer = ({ onScroll }: { onScroll?: (event: UIEvent<
     <Virtuoso
       ref={virtuoso}
       className={listClasses.listContainer}
+      components={listComponents}
       style={{ height: '100%' }}
       totalCount={rows.length}
       defaultItemHeight={view.entryHeight}

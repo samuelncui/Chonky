@@ -71,6 +71,11 @@ Avoid blanket important button colors that mask disabled, active and focus state
 Portaled MUI controls retain the browser theme; application-owned portal content
 may restore its own app theme at that boundary.
 
+Ordinary, grouped and sparse lists share a stable scrollbar gutter and a 16px
+content inset at the inline end. The inset keeps rows and group actions clear of
+overlay scrollbars, which do not reserve layout space. Consumers do not need
+page-specific scrollbar padding.
+
 `ChonkyActions.EnableCompactView` remains experimental and opt-in. Ordinary file
 lists support its compact entries, native selection, and focus/selection indicators.
 Grouped and sparse projections use List view. Compact does not provide List view's
