@@ -6,7 +6,7 @@
 
 import React, { CSSProperties, UIEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useChonkyDispatch, useChonkySelector } from '../../redux/store';
-import { ListProps, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { reduxActions } from '../../redux/reducers';
 import { selectFileMap, selectFileViewConfig, selectRevealFileRequest, selectors } from '../../redux/selectors';
@@ -53,7 +53,6 @@ export const ListContainer: React.FC<FileListListProps> = React.memo(({ onScroll
     <Virtuoso
       ref={virtuosoRef}
       className={classes.listContainer}
-      components={listComponents}
       style={containerStyle}
       totalCount={displayFileIds.length}
       fixedItemHeight={hasDetails ? undefined : viewConfig.entryHeight}
@@ -69,28 +68,19 @@ const containerStyle: CSSProperties = {
   height: '100%',
 };
 
-const ListContent = React.forwardRef<HTMLDivElement, ListProps>(({ children, style, 'data-testid': testId }, ref) => {
-  const classes = useListContainerStyles();
-  return (
-    <div ref={ref} data-testid={testId} className={classes.listContent} style={style}>
-      {children}
-    </div>
-  );
-});
-ListContent.displayName = 'ListContent';
-
-export const listComponents = { List: ListContent };
-
 export const useListContainerStyles = makeGlobalChonkyStyles((theme) => ({
   listContainer: {
     width: `calc(100% + ${theme.margins.rootLayoutMargin * 2}px)`,
     marginLeft: -theme.margins.rootLayoutMargin,
-    scrollbarGutter: 'stable',
-  },
-  listContent: {
-    // Overlay scrollbars do not consume a gutter. Keep rows and group actions
-    // out of their edge lane through Virtuoso's shared list, including sparse rows.
-    boxSizing: 'border-box',
-    paddingInlineEnd: 16,
+    // A styled native scrollbar occupies its own space in Chrome and Safari.
+    // The browser allocates that space only while content overflows.
+    '&::-webkit-scrollbar': { width: 12, height: 12 },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: theme.palette.text.secondary,
+      border: '2px solid transparent',
+      borderRadius: 6,
+      backgroundClip: 'padding-box',
+    },
+    '&::-webkit-scrollbar-track': { backgroundColor: theme.palette.background.paper },
   },
 }));

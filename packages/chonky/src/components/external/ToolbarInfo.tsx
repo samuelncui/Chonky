@@ -14,9 +14,11 @@ import { selectGrouping, selectHiddenFileCount, selectSelectionSize, selectors }
 import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
 
-export interface ToolbarInfoProps {}
+export interface ToolbarInfoProps {
+  totalFileCount?: number | null;
+}
 
-export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
+export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(({ totalFileCount }) => {
   const classes = useStyles();
 
   const grouping = useChonkySelector(selectGrouping);
@@ -25,25 +27,33 @@ export const ToolbarInfo: React.FC<ToolbarInfoProps> = React.memo(() => {
   const hiddenCount = useChonkySelector(selectHiddenFileCount);
 
   const intl = useIntl();
-  const fileCountString = grouping?.sparse
-    ? intl.formatMessage(
-        {
-          id: getI18nId(I18nNamespace.Toolbar, 'sparseRowCount'),
-          defaultMessage: '{rowCount, plural, one {# row} other {# rows}}',
-        },
-        { rowCount: grouping.sparse.totalCount },
-      )
-    : intl.formatMessage(
-        {
-          id: getI18nId(I18nNamespace.Toolbar, 'visibleFileCount'),
-          defaultMessage: `{fileCount, plural,
+  let fileCountString: string;
+  if (grouping?.sparse) {
+    fileCountString = intl.formatMessage(
+      {
+        id: getI18nId(I18nNamespace.Toolbar, 'sparseRowCount'),
+        defaultMessage: '{rowCount, plural, one {# row} other {# rows}}',
+      },
+      { rowCount: grouping.sparse.totalCount },
+    );
+  } else if (totalFileCount === null) {
+    fileCountString = intl.formatMessage({
+      id: getI18nId(I18nNamespace.Toolbar, 'unknownFileCount'),
+      defaultMessage: 'Unknown total',
+    });
+  } else {
+    fileCountString = intl.formatMessage(
+      {
+        id: getI18nId(I18nNamespace.Toolbar, 'visibleFileCount'),
+        defaultMessage: `{fileCount, plural,
                 =0 {# items}
                 one {# item}
                 other {# items}
             }`,
-        },
-        { fileCount },
-      );
+      },
+      { fileCount: totalFileCount ?? fileCount },
+    );
+  }
   const selectedString = intl.formatMessage(
     {
       id: getI18nId(I18nNamespace.Toolbar, 'selectedFileCount'),

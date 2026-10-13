@@ -99,14 +99,14 @@ wrapped Grid preview and checkbox bounds on desktop and mobile,
 bounded sparse rendered rows, and stable style-rule counts after repeated theme
 switches and remounts.
 
-All virtual list variants share the content inset in `useListContainerStyles`.
-Keep group controls, file details and status indicators clear of the scrollbar edge.
-The stable gutter prevents classic scrollbars from changing available width;
-the content inset also protects against overlay scrollbars, for which
-[`scrollbar-gutter` reserves no space](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/scrollbar-gutter).
-`scrollbar.spec.ts` checks both layout models at desktop and narrow widths with
-ordinary, detailed, grouped and sparse rows. It models scrollbar geometry in Chromium;
-native scrollbar appearance remains controlled by the OS.
+All virtual list variants share native scrollbar styling in `useListContainerStyles`.
+Chrome and Safari [give a sized scrollbar its own layout space](https://developer.chrome.com/docs/css-ui/scrollbar-styling),
+so overflowing content has a visible scrollbar before interaction and content that fits has no
+reserved column. Other browsers retain their native scrollbar behavior. The list fills the
+browser's client width; application padding does not stand in for a scrollbar.
+`scrollbar.spec.ts` enables actual headless Chromium scrollbars and checks initial rendering,
+scrolling, narrow panes, a wider scrollbar and a list that fits. Ordinary, detailed, grouped
+and sparse rows share these checks; hiding scrollbars cannot verify this boundary.
 
 Browser acceptance currently covers Chromium only. Global defaults, custom
 formatters and cross-browser DnD have no dedicated regression tests; the examples use per-browser props and the default formatting.

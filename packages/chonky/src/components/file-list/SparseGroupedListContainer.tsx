@@ -14,7 +14,7 @@ import { FileViewMode } from '../../types/file-view.types';
 import { makeLocalChonkyStyles } from '../../util/styles';
 import { SmartFileEntry } from './FileEntry';
 import { GroupHeader } from './GroupedListContainer';
-import { listComponents, useListContainerStyles } from './ListContainer';
+import { useListContainerStyles } from './ListContainer';
 
 /** Virtual indices belong to the caller's display projection, including unloaded rows. */
 export const SparseGroupedListContainer = ({ onScroll }: { onScroll?: (event: UIEvent<HTMLDivElement>) => void }) => {
@@ -51,7 +51,6 @@ export const SparseGroupedListContainer = ({ onScroll }: { onScroll?: (event: UI
     <Virtuoso
       ref={virtuoso}
       className={classes.listContainer}
-      components={listComponents}
       style={{ height: '100%' }}
       totalCount={sparse.totalCount}
       defaultItemHeight={view.entryHeight}

@@ -38,6 +38,12 @@ children, and action regions on one row:
 <FileToolbar layout="inline" />
 ```
 
+`FileToolbar` accepts `totalFileCount?: number | null` for streamed or paged lists.
+Omit it to retain the displayed-file count, pass `null` for localized **Unknown total**,
+or pass a number (including zero) for the authoritative total. Selection and hidden-file
+counts remain available. Sparse grouping keeps its own total row count regardless of
+this prop. Counts are data props; localization messages remain static templates.
+
 Sort by name starts ascending; Sort by size and Sort by date start descending.
 Selecting the active sort action toggles its direction. Custom sort actions start
 ascending unless they set `initialSortOrder: SortOrder.DESC`.
@@ -71,10 +77,11 @@ Avoid blanket important button colors that mask disabled, active and focus state
 Portaled MUI controls retain the browser theme; application-owned portal content
 may restore its own app theme at that boundary.
 
-Ordinary, grouped and sparse lists share a stable scrollbar gutter and a 16px
-content inset at the inline end. The inset keeps rows and group actions clear of
-overlay scrollbars, which do not reserve layout space. Consumers do not need
-page-specific scrollbar padding.
+Ordinary, grouped and sparse lists share native scrollbar styling. In Chrome and
+Safari, an overflowing list shows a scrollbar in its own browser-allocated space,
+including before the first scroll. A list that fits has no reserved column.
+Other browsers retain native scrollbar behavior. Rows use the scroll container's
+client width; consumers do not need page-specific padding or scrollbar measurements.
 
 `ChonkyActions.EnableCompactView` remains experimental and opt-in. Ordinary file
 lists support its compact entries, native selection, and focus/selection indicators.

@@ -10,6 +10,12 @@ import { ToolbarSearch } from './ToolbarSearch';
 
 export interface FileToolbarProps {
   /**
+   * Total entries in a non-sparse listing. Omit to count displayed files, use null
+   * when the total is unknown, or supply the authoritative count, including zero.
+   * Sparse grouping always uses its own total row count.
+   */
+  totalFileCount?: number | null;
+  /**
    * Controls how the filter, summary, children, and action regions are laid out.
    * `responsive` allows the toolbar sides to wrap and is the default. `inline`
    * keeps all four regions on one row and compacts icon buttons in narrow containers.
@@ -18,7 +24,7 @@ export interface FileToolbarProps {
 }
 
 export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> = React.memo((props) => {
-  const { children, layout = 'responsive' } = props;
+  const { children, layout = 'responsive', totalFileCount } = props;
   const inline = layout === 'inline';
   const classes = useStyles();
   const toolbarItems = useChonkySelector(selectToolbarItems);
@@ -50,7 +56,9 @@ export const FileToolbar: React.FC<FileToolbarProps & { children?: ReactNode }> 
             {/* Sparse rows are caller-owned; filtering loaded files would misrepresent the full result. */}
             {!sparse && <ToolbarSearch />}
           </div>
-          <div className={classes.toolbarSummary}>{!hideToolbarInfo && <ToolbarInfo />}</div>
+          <div className={classes.toolbarSummary}>
+            {!hideToolbarInfo && <ToolbarInfo totalFileCount={totalFileCount} />}
+          </div>
           <div className={classes.toolbarExtras}>{children}</div>
         </div>
         <div className={composeStyles(classes.toolbarRight, inline && classes.toolbarRightInline)}>
