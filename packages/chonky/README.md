@@ -52,12 +52,12 @@ Invalid modification dates are treated as missing for display and sorting.
 Enter, including keypad Enter, opens the focused openable file when selection is
 empty; otherwise, the default Open selection action opens the openable selection.
 
-File lists use list/listitem semantics. Selectable rows expose a native, named
-checkbox as their selection tab stop; row actions remain sibling controls.
-Space toggles selection, and the keyboard context menu targets the focused file.
-Mouse row selection retains Ctrl/Cmd and Shift behavior. Grid checkboxes overlay
-the card so they do not reduce the space for previews and file names. Thumbnails use native
-images with contained sizing, including URLs containing quotes or non-ASCII text.
+File lists use list/listitem semantics. Each clickable file row or Grid card is a
+named tab stop. Selection uses the existing row highlight, with no checkbox or
+additional selection column. Space toggles selection, and the keyboard context
+menu targets the focused file. Mouse row selection retains Ctrl/Cmd and Shift
+behavior. Thumbnails use native images with contained sizing, including URLs
+containing quotes or non-ASCII text.
 
 Each browser uses a private Redux context. Caller components in children, toolbar
 and footer slots keep the enclosing application's ordinary `useSelector`,
@@ -84,7 +84,7 @@ Other browsers retain native scrollbar behavior. Rows use the scroll container's
 client width; consumers do not need page-specific padding or scrollbar measurements.
 
 `ChonkyActions.EnableCompactView` remains experimental and opt-in. Ordinary file
-lists support its compact entries, native selection, and focus/selection indicators.
+lists support its compact entries, row selection, and focus/selection indicators.
 Grouped and sparse projections use List view. Compact does not provide List view's
 status/detail presentation or Grid view's thumbnail/DnD preview indicators.
 

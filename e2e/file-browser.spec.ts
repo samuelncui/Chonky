@@ -10,10 +10,16 @@ test.beforeEach(async ({ page }) => {
 test('renders, searches, and selects files', async ({ page }) => {
   await expect(page.locator('.chonky-fileListWrapper[role="list"]')).toBeVisible();
   await expect(page.locator('[data-test-id="file-entry"]')).toHaveCount(5);
+  await expect(page.getByRole('list').getByRole('checkbox')).toHaveCount(0);
+  const rowBounds = await page.getByRole('listitem', { name: 'alpha.txt' }).boundingBox();
+  const entryBounds = await fileEntry(page, 'alpha').boundingBox();
+  expect(entryBounds!.x).toBe(rowBounds!.x);
+  expect(entryBounds!.width).toBe(rowBounds!.width);
   await fileEntry(page, 'alpha').click();
   await expect(page.getByTestId('selection-count')).toHaveText('1');
   await fileEntry(page, 'bravo').click({ modifiers: ['Shift'] });
   await expect(page.getByTestId('selection-count')).toHaveText('2');
+  await test.info().attach('Row selection', { body: await page.screenshot(), contentType: 'image/png' });
   await page.getByRole('button', { name: 'Filter', exact: true }).click();
   const search = page.getByPlaceholder('Filter', { exact: true });
   await search.fill('bravo');
@@ -111,13 +117,13 @@ test('preserves selection and scroll position when the reveal target is filtered
 });
 
 test('opens a focused file with keypad Enter and the selected file with Enter', async ({ page }) => {
-  const alpha = page.getByRole('checkbox', { name: 'Select alpha.txt' });
+  const alpha = page.getByRole('listitem', { name: 'alpha.txt' });
   await alpha.focus();
   await alpha.press('NumpadEnter');
   await expect(page.getByRole('region', { name: 'Fixture preview' })).toContainText('alpha.txt');
   await expect(page.getByTestId('selection-count')).toHaveText('0');
   await fileEntry(page, 'bravo').click();
-  await page.getByRole('checkbox', { name: 'Select bravo.mp4' }).press('Enter');
+  await page.getByRole('listitem', { name: 'bravo.mp4' }).press('Enter');
   await expect(page.getByRole('region', { name: 'Fixture preview' })).toContainText('bravo.mp4');
 });
 
@@ -172,39 +178,38 @@ for (const view of ['List', 'Grid']) {
   });
 }
 
-test('native selection controls target the focused file for keyboard context menus', async ({ page }) => {
-  const alpha = page.getByRole('checkbox', { name: 'Select alpha.txt', exact: true });
-  const bravo = page.getByRole('checkbox', { name: 'Select bravo.mp4', exact: true });
-  await alpha.check();
-  await expect(alpha).toBeChecked();
-  await expect(alpha.locator('..')).toHaveAttribute('role', 'listitem');
-  await expect(alpha.locator('..')).not.toHaveAttribute('tabindex', '0');
+test('file rows target the focused file for keyboard context menus', async ({ page }) => {
+  const alpha = page.getByRole('listitem', { name: 'alpha.txt', exact: true });
+  const bravo = page.getByRole('listitem', { name: 'bravo.mp4', exact: true });
+  await alpha.click();
+  await expect(page.getByTestId('selection-count')).toHaveText('1');
+  await expect(alpha).toBeFocused();
+  await expect(alpha).toHaveAttribute('tabindex', '0');
+  await expect(page.getByRole('list').getByRole('checkbox')).toHaveCount(0);
   await expect(page.locator('[aria-selected]')).toHaveCount(0);
   await bravo.focus();
   await bravo.press('ContextMenu');
   await page.getByRole('menuitem', { name: 'Open selection' }).click();
   await expect(page.getByRole('region', { name: 'Fixture preview' })).toContainText('bravo.mp4');
-  await expect(alpha).not.toBeChecked();
-  await expect(bravo).toBeChecked();
+  await expect(page.getByTestId('selection-count')).toHaveText('1');
   await bravo.press('Space');
-  await expect(bravo).not.toBeChecked();
+  await expect(page.getByTestId('selection-count')).toHaveText('0');
   await bravo.press('Space');
-  await expect(bravo).toBeChecked();
+  await expect(page.getByTestId('selection-count')).toHaveText('1');
   await bravo.press('Control+a');
-  await expect(alpha).toBeChecked();
+  await expect(page.getByTestId('selection-count')).toHaveText('5');
 });
 
-test('keeps wrapped Grid previews and native selection controls inside their cards', async ({ page }) => {
-  await fileEntry(page, 'photos').dblclick();
-  await page.getByRole('button', { name: 'Options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Switch to Grid' }).click();
-
-  for (const width of [1280, 390]) {
+for (const width of [1280, 390]) {
+  test(`keeps Grid previews and whole-card selection at ${width}px`, async ({ page }) => {
+    await fileEntry(page, 'photos').dblclick();
+    await page.getByRole('button', { name: 'Options', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Switch to Grid' }).click();
     await page.setViewportSize({ width, height: 960 });
     const card = fileEntry(page, 'portrait');
+    const row = page.getByRole('listitem', { name: 'holiday-snapshot.jpg', exact: true });
     const preview = card.locator(':scope > div').first();
     const icon = preview.locator('svg');
-    const checkbox = page.getByRole('checkbox', { name: 'Select holiday-snapshot.jpg', exact: true });
     await expect(icon).toBeVisible();
     const previewBounds = await preview.boundingBox();
     const iconBounds = await icon.boundingBox();
@@ -212,20 +217,14 @@ test('keeps wrapped Grid previews and native selection controls inside their car
     expect(iconBounds!.y + iconBounds!.height).toBeLessThanOrEqual(previewBounds!.y + previewBounds!.height);
     expect(iconBounds!.x).toBeGreaterThanOrEqual(previewBounds!.x);
     expect(iconBounds!.x + iconBounds!.width).toBeLessThanOrEqual(previewBounds!.x + previewBounds!.width);
-
-    const cardBounds = await card.boundingBox();
-    const checkboxBounds = await checkbox.boundingBox();
-    expect(checkboxBounds!.x).toBeGreaterThanOrEqual(cardBounds!.x);
-    expect(checkboxBounds!.x + checkboxBounds!.width).toBeLessThanOrEqual(cardBounds!.x + cardBounds!.width);
-    expect(checkboxBounds!.y).toBeGreaterThanOrEqual(cardBounds!.y);
-    expect(checkboxBounds!.y + checkboxBounds!.height).toBeLessThanOrEqual(cardBounds!.y + cardBounds!.height);
-    await checkbox.check();
+    await expect(row.getByRole('checkbox')).toHaveCount(0);
+    await card.click();
+    await expect(row).toBeFocused();
     await expect(page.getByTestId('selection-count')).toHaveText('1');
-    await checkbox.press('Space');
-    await expect(checkbox).not.toBeChecked();
+    await row.press('Space');
     await expect(page.getByTestId('selection-count')).toHaveText('0');
-  }
-});
+  });
+}
 
 test('loads a quoted thumbnail URL through a native image in Grid view', async ({ page }) => {
   await fileEntry(page, 'photos').dblclick();

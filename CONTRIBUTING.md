@@ -55,6 +55,9 @@ obsolete assertions and same-boundary duplicates, and preserve the distinct boun
 Reusable scripts stay in the repository; supply private hosts, paths and inputs through parameters.
 Keep credentials and sensitive reports outside tracked source and public artifacts. Automated
 checks do not grant source-push, Demo or publication permission or replace required visual review.
+Functional fixes preserve the reviewed layout and interaction model. Compare the rendered
+consumer with that layout; adding a control or changing selection presentation is a design
+change that needs approval. Test user actions and results against the accepted design.
 
 Measure baseline and candidate serially on the same idle host, with the same runtime/browser,
 fixtures and native runner settings. Use one benchmark invocation per source and the runner's
@@ -90,12 +93,12 @@ build under `/Chonky/` to verify asset paths, navigation and reloads.
 For focused checks, run `pnpm --filter @samuelncui/chonky exec vitest run test/<file>`
 or, after `pnpm build`, `pnpm exec playwright test e2e/<file>`.
 `integration-boundaries.test.tsx` covers all three host Redux hooks in caller
-slots, two independent browser stores, native selection semantics and thumbnail
+slots, two independent browser stores, row selection and thumbnail
 URLs. `selection-regressions.test.ts` covers sparse anchors, prototype-named IDs
 and the sparse selector's bypass of ordinary sorting. `style-composition.test.tsx`
 reproduces disabled breadcrumb precedence across themes. Browser checks exercise
-native keyboard context menus, checkbox shortcuts, quoted-URL image loading,
-wrapped Grid preview and checkbox bounds on desktop and mobile,
+native keyboard context menus, row shortcuts, quoted-URL image loading,
+wrapped Grid previews and whole-card selection on desktop and mobile,
 bounded sparse rendered rows, and stable style-rule counts after repeated theme
 switches and remounts.
 

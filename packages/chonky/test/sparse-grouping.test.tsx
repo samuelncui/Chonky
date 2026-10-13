@@ -143,7 +143,7 @@ describe('sparse grouped file lists', () => {
     expect(screen.queryByRole('progressbar')).toBeNull();
     expect(list().getAttribute('aria-busy')).toBe('false');
     expect(container.querySelectorAll('[data-chonky-sparse-placeholder]')).toHaveLength(0);
-    expect(screen.getByRole('checkbox', { name: 'Select Near' })).toBeTruthy();
+    expect(screen.getByRole('listitem', { name: 'Near' })).toBeTruthy();
   });
 
   it('keeps caller-included hidden rows selectable even when Show hidden files is off', async () => {
@@ -304,7 +304,7 @@ describe('sparse grouped file lists', () => {
       };
       render(<Browser />);
       await act(async () => {
-        fireEvent.click(screen.getByRole('checkbox', { name: 'Select Far' }));
+        fireEvent.keyDown(screen.getByRole('listitem', { name: 'Far' }), { key: ' ', code: 'Space' });
       });
       expect(ref.current?.getFileSelection()).toEqual(new Set(['far']));
       expect(onGroupChange).toHaveBeenLastCalledWith('far-group');
@@ -319,14 +319,13 @@ describe('sparse grouped file lists', () => {
         expect(screen.getByTestId('virtual-list').getAttribute('data-total-count')).toBe(expanded ? '4' : '3');
         expect(onToggleGroup).toHaveBeenLastCalledWith('near-group');
         expect(ref.current?.getFileSelection()).toEqual(new Set(['far']));
-        expect((screen.getByRole('checkbox', { name: 'Select Far' }) as HTMLInputElement).checked).toBe(true);
         expect(screen.getByText('1 selected')).toBeTruthy();
         expect(onGroupChange).not.toHaveBeenCalled();
         expect(onFileAction).not.toHaveBeenCalled();
       }
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('checkbox', { name: 'Select Far' }));
+        fireEvent.keyDown(screen.getByRole('listitem', { name: 'Far' }), { key: ' ', code: 'Space' });
       });
       expect(ref.current?.getFileSelection()).toEqual(new Set());
       expect(screen.queryByText('1 selected')).toBeNull();

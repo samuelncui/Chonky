@@ -179,7 +179,7 @@ describe('library regressions', () => {
     );
     await screen.findByTestId('virtual-list');
     act(() => ref.current?.setFileSelection(new Set(['file'])));
-    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
+    const wrapper = screen.getByRole('listitem', { name: 'File.txt' });
     act(() => wrapper.focus());
     fireEvent.keyDown(wrapper, { code: 'Enter', key: 'Enter', keyCode: 13 });
     await waitFor(() =>
@@ -205,7 +205,7 @@ describe('library regressions', () => {
       </FileBrowser>,
     );
     await screen.findByTestId('virtual-list');
-    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
+    const wrapper = screen.getByRole('listitem', { name: 'File.txt' });
     act(() => wrapper.focus());
     await act(async () => {
       fireEvent.keyDown(wrapper, { code: 'Enter', key: 'Enter', keyCode: 13 });
@@ -221,7 +221,7 @@ describe('library regressions', () => {
         <FileList />
       </FileBrowser>,
     );
-    const wrapper = screen.getByRole('checkbox', { name: 'Select File.txt' });
+    const wrapper = screen.getByRole('listitem', { name: 'File.txt' });
     act(() => wrapper.focus());
     await act(async () => {
       fireEvent.keyDown(wrapper, { code: 'NumpadEnter', key: 'Enter', keyCode: 13 });

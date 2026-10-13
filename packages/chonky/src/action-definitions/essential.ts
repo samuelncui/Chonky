@@ -144,7 +144,7 @@ export const EssentialActions = {
         }),
       );
       if (payload.enterKey) {
-        // Row keys settle here, including keys from the native selection checkbox.
+        // Settle Enter here so the browser hotkey does not open the selection twice.
         if (selectSelectionSize(getReduxState()) > 0) {
           if (getReduxState().fileActionMap[ChonkyActions.OpenSelection.id]) {
             reduxDispatch(thunkRequestFileAction(ChonkyActions.OpenSelection, undefined));

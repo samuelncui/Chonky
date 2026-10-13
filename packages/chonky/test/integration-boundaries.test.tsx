@@ -1,13 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { createRef, forwardRef, useImperativeHandle } from 'react';
 import { Provider, useDispatch, useSelector, useStore } from 'react-redux';
 import { vi } from 'vitest';
 import { ChonkyActions, FileBrowser, FileContextMenu, FileList, FileToolbar, type FileBrowserHandle } from '../src';
 import { FileThumbnail } from '../src/components/file-list/FileThumbnail';
 
-vi.mock('react-virtuoso', () => ({
-  Virtuoso: forwardRef((props: any, ref) => {
+vi.mock('react-virtuoso', () => {
+  const List = forwardRef((props: any, ref) => {
     useImperativeHandle(ref, () => ({ scrollToIndex: vi.fn() }));
     return (
       <>
@@ -16,8 +16,9 @@ vi.mock('react-virtuoso', () => ({
         ))}
       </>
     );
-  }),
-}));
+  });
+  return { Virtuoso: List, VirtuosoGrid: List };
+});
 
 it('keeps host selector, dispatch and store hooks in all slots and isolates browser stores', async () => {
   const host = configureStore({
@@ -62,46 +63,52 @@ it('keeps host selector, dispatch and store hooks in all slots and isolates brow
   expect(host.getState()).toEqual({ count: 3 });
 });
 
-it('exposes native checkbox selection and resolves keyboard context menus from focus rather than previous selection', async () => {
-  const ref = createRef<FileBrowserHandle>();
-  const handler = vi.fn();
-  render(
-    <FileBrowser
-      ref={ref}
-      files={[
-        { id: 'alpha', name: 'Alpha' },
-        { id: 'bravo', name: 'Bravo' },
-      ]}
-      onFileAction={handler}
-      disableDragAndDrop
-    >
-      <FileList />
-      <FileContextMenu />
-    </FileBrowser>,
-  );
-  const alpha = screen.getByRole('checkbox', { name: 'Select Alpha' });
-  const bravo = screen.getByRole('checkbox', { name: 'Select Bravo' });
-  expect(alpha.closest('[role="listitem"]')?.getAttribute('tabindex')).toBeNull();
-  fireEvent.click(alpha);
-  expect((alpha as HTMLInputElement).checked).toBe(true);
-  act(() => bravo.focus());
-  fireEvent.contextMenu(bravo);
-  fireEvent.click(await screen.findByRole('menuitem', { name: 'Open selection' }));
-  await waitFor(() =>
-    expect(handler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: ChonkyActions.OpenFiles.id,
-        payload: { files: [expect.objectContaining({ id: 'bravo' })] },
-      }),
-    ),
-  );
-  fireEvent.keyDown(bravo, { key: ' ', code: 'Space' });
-  expect((bravo as HTMLInputElement).checked).toBe(false);
-  fireEvent.keyDown(bravo, { key: ' ', code: 'Space' });
-  expect((bravo as HTMLInputElement).checked).toBe(true);
-  expect(within(bravo.closest('[role="listitem"]') as HTMLElement).getAllByRole('checkbox')).toHaveLength(1);
-  expect(document.querySelector('[aria-selected]')).toBeNull();
-});
+it.each([ChonkyActions.EnableListView, ChonkyActions.EnableGridView, ChonkyActions.EnableCompactView])(
+  'selects through the file row and targets the focused file for context menus in $id',
+  async (view) => {
+    const ref = createRef<FileBrowserHandle>();
+    const handler = vi.fn();
+    render(
+      <FileBrowser
+        ref={ref}
+        files={[
+          { id: 'alpha', name: 'Alpha' },
+          { id: 'bravo', name: 'Bravo' },
+        ]}
+        onFileAction={handler}
+        fileActions={[view]}
+        defaultFileViewActionId={view.id}
+        disableDragAndDrop
+      >
+        <FileList />
+        <FileContextMenu />
+      </FileBrowser>,
+    );
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+    const alpha = screen.getByRole('listitem', { name: 'Alpha' });
+    const bravo = screen.getByRole('listitem', { name: 'Bravo' });
+    expect(alpha.getAttribute('tabindex')).toBe('0');
+    fireEvent.click(alpha);
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['alpha']));
+    expect(document.activeElement).toBe(alpha);
+    act(() => bravo.focus());
+    fireEvent.contextMenu(bravo);
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Open selection' }));
+    await waitFor(() =>
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: ChonkyActions.OpenFiles.id,
+          payload: { files: [expect.objectContaining({ id: 'bravo' })] },
+        }),
+      ),
+    );
+    fireEvent.keyDown(bravo, { key: ' ', code: 'Space' });
+    expect(ref.current?.getFileSelection()).toEqual(new Set());
+    fireEvent.keyDown(bravo, { key: ' ', code: 'Space' });
+    expect(ref.current?.getFileSelection()).toEqual(new Set(['bravo']));
+    expect(document.querySelector('[aria-selected]')).toBeNull();
+  },
+);
 
 it('passes arbitrary valid thumbnail URLs to a native image and clears removed thumbnails', () => {
   const url = '/pictures/O\'Reilly-雪.jpg?caption="quoted"';
