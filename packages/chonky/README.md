@@ -256,7 +256,15 @@ the loaded range. Use unique file IDs and indices, with indices between zero and
 `totalCount - 1`. `memberCount` is the group's full member count. Set `expanded`
 on a group to control its header chevron; it defaults to `true`. The caller updates
 `totalCount` and `rows` after a collapse, removal, or other projection change.
-Unloaded positions render visible, inert loading placeholders. The toolbar
+Unloaded positions retain their row height as passive, inert placeholders, hidden
+from assistive technology. They contain no repeated loading labels or spinners.
+The caller sets `FileList.loading="more"` (or `"refreshing"`) only while a read is
+pending; the existing list-level indicator and `aria-busy` report that state,
+with an optional `loadingLabel`. Clear `loading` when the read settles, including
+on failure, and render the error and retry controls in caller-owned content.
+A missing row alone does not imply a pending read. Use `"initial"` only when the
+list should be replaced entirely; `emptyPlaceholder` applies when there are no
+rows in the projection, not to gaps in a nonempty sparse list. The toolbar
 reports the projection's total **rows** (including headers), not just loaded
 files. Chonky does not sort or filter the caller-managed projection, so its
 built-in Filter and Show hidden files controls are hidden in sparse mode. The

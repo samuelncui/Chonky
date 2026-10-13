@@ -68,7 +68,7 @@ describe('sparse grouped file lists', () => {
         <FileToolbar>
           <span data-testid="toolbar-extension">extension</span>
         </FileToolbar>
-        <FileList />
+        <FileList loading="more" />
       </FileBrowser>,
     );
 
@@ -77,10 +77,11 @@ describe('sparse grouped file lists', () => {
     expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull();
     expect(screen.getByTestId('toolbar-extension').textContent).toBe('extension');
     await waitFor(() => expect(onRangeChanged).toHaveBeenCalledWith(0, 3));
-    expect(screen.getByRole('status').textContent).toBe('Loading files');
-    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('progressbar', { name: 'Loading files' })).toBeTruthy();
+    expect(screen.getAllByRole('progressbar')).toHaveLength(1);
+    expect(screen.queryByRole('status')).toBeNull();
     expect(container.querySelectorAll('[data-chonky-sparse-placeholder]')).toHaveLength(2);
-    expect(container.querySelector('[data-chonky-sparse-placeholder]')?.textContent).toBe('Loading…');
+    expect(container.querySelector('[data-chonky-sparse-placeholder]')?.textContent).toBe('');
     fireEvent.click(container.querySelector('[data-chonky-sparse-placeholder]')!);
     expect(ref.current?.getFileSelection()).toEqual(new Set());
 
@@ -96,43 +97,53 @@ describe('sparse grouped file lists', () => {
     expect(ref.current?.getFileSelection()).toEqual(new Set(['far']));
   });
 
-  it('clears the single loading status when the visible placeholders load', async () => {
+  it('uses caller pending state instead of announcing failed or idle gaps as loading', () => {
     const group = { id: 'near-group', name: 'Near group', memberCount: 1 };
-    const onRangeChanged = vi.fn();
-    const onToggleGroup = vi.fn();
-    const { rerender } = render(
+    const sparse = { totalCount: 2, rows: [], onRangeChanged: vi.fn(), onToggleGroup: vi.fn() };
+    const renderState = (pending: boolean, error = false, loaded = false) => (
       <FileBrowser
-        files={[]}
-        grouping={{ mode: 'continuous', sparse: { totalCount: 2, rows: [], onRangeChanged, onToggleGroup } }}
-        disableDragAndDrop
-      >
-        <FileList />
-      </FileBrowser>,
-    );
-    await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Loading files'));
-
-    rerender(
-      <FileBrowser
-        files={[files[0]]}
+        files={loaded ? [files[0]] : []}
         grouping={{
           mode: 'continuous',
           sparse: {
-            totalCount: 2,
-            rows: [
-              { index: 0, kind: 'group', group },
-              { index: 1, kind: 'file', group, fileId: 'near' },
-            ],
-            onRangeChanged,
-            onToggleGroup,
+            ...sparse,
+            rows: loaded
+              ? [
+                  { index: 0, kind: 'group', group },
+                  { index: 1, kind: 'file', group, fileId: 'near' },
+                ]
+              : [],
           },
         }}
         disableDragAndDrop
       >
-        <FileList />
-      </FileBrowser>,
+        {error && <div role="alert">Page failed. Retry.</div>}
+        <FileList loading={pending ? 'more' : undefined} loadingLabel="Reading page" />
+      </FileBrowser>
     );
-    await waitFor(() => expect(screen.getByRole('status').textContent).toBe(''));
-    expect(screen.getAllByRole('status')).toHaveLength(1);
+    const { container, rerender } = render(renderState(true));
+    const list = () => container.querySelector('.chonky-fileListWrapper')!;
+    expect(list().getAttribute('aria-busy')).toBe('true');
+    expect(screen.getAllByRole('progressbar')).toHaveLength(1);
+    expect(screen.getByRole('progressbar', { name: 'Reading page' })).toBeTruthy();
+    expect(container.querySelectorAll('[data-chonky-sparse-placeholder]')).toHaveLength(2);
+
+    for (const error of [true, false]) {
+      rerender(renderState(false, error));
+      expect(list().getAttribute('aria-busy')).toBe('false');
+      expect(screen.queryByRole('progressbar')).toBeNull();
+      expect(screen.queryByRole('status')).toBeNull();
+      expect(!!screen.queryByRole('alert')).toBe(error);
+      expect(container.querySelectorAll('[data-chonky-sparse-placeholder]')).toHaveLength(2);
+      expect(list().textContent).not.toContain('Loading');
+    }
+    rerender(renderState(true));
+    expect(screen.getAllByRole('progressbar')).toHaveLength(1);
+    rerender(renderState(false, false, true));
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(list().getAttribute('aria-busy')).toBe('false');
+    expect(container.querySelectorAll('[data-chonky-sparse-placeholder]')).toHaveLength(0);
+    expect(screen.getByRole('checkbox', { name: 'Select Near' })).toBeTruthy();
   });
 
   it('keeps caller-included hidden rows selectable even when Show hidden files is off', async () => {

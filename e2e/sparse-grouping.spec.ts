@@ -17,6 +17,65 @@ const dispatchShortcut = (page: Page, key: string, keyCode: number) =>
     { key, keyCode },
   );
 
+test('delayed sparse reads keep quiet placeholders, one pending indicator and stable scroll geometry', async ({
+  page,
+}) => {
+  const now = new Date('2026-10-13T00:00:00Z');
+  await page.clock.install({ time: now });
+  await page.clock.pauseAt(now);
+  await page.goto('./?example=sparse');
+  const list = page.locator('.chonky-fileListWrapper');
+  const scroller = list.locator('[data-virtuoso-scroller="true"]');
+  const placeholders = list.locator('[data-chonky-sparse-placeholder]');
+  const geometry = () =>
+    scroller.evaluate((element) => ({
+      height: element.scrollHeight,
+      top: element.scrollTop,
+      viewport: element.clientHeight,
+    }));
+  const expectPending = async () => {
+    await expect(list).toHaveAttribute('aria-busy', 'true');
+    await expect(list.getByRole('progressbar', { name: 'Loading files' })).toHaveCount(1);
+    await expect(placeholders.first()).toBeVisible();
+    await expect(placeholders.first()).toHaveAttribute('aria-hidden', 'true');
+    await expect(placeholders.first()).toHaveCSS('pointer-events', 'none');
+    expect(await placeholders.allTextContents()).toEqual(Array(await placeholders.count()).fill(''));
+    await expect(list.getByRole('status')).toHaveCount(0);
+    expect(await placeholders.count()).toBeLessThan(100);
+  };
+
+  await page.clock.runFor(100);
+  await expectPending();
+  await expect(page.getByText('20,001 rows')).toBeVisible();
+  const cold = await geometry();
+  expect(cold.height).toBeGreaterThan(cold.viewport * 100);
+  const placeholderHeight = await placeholders.first().evaluate((element) => element.getBoundingClientRect().height);
+  expect(placeholderHeight).toBeGreaterThan(0);
+  await page.clock.runFor(300);
+  await expect(placeholders).toHaveCount(0);
+  await expect(list).toHaveAttribute('aria-busy', 'false');
+  await expect(list.getByRole('progressbar')).toHaveCount(0);
+  const loaded = await geometry();
+  expect(Math.abs(loaded.height - cold.height)).toBeLessThanOrEqual(placeholderHeight);
+
+  await page.locator('[data-chonky-file-id="sparse-1"]').click();
+  await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight * 0.85 }));
+  await page.clock.runFor(100);
+  await expectPending();
+  const jumped = await geometry();
+  expect(jumped.top).toBeGreaterThan(loaded.height * 0.8);
+  await expect(page.getByTestId('sparse-selection-count')).toHaveText('1');
+  await page.clock.runFor(300);
+  await expect(placeholders).toHaveCount(0);
+  await expect(list).toHaveAttribute('aria-busy', 'false');
+  await expect(list.getByRole('progressbar')).toHaveCount(0);
+  const settled = await geometry();
+  expect(settled.top).toBe(jumped.top);
+  expect(settled.height).toBe(jumped.height);
+  await expect(page.getByTestId('sparse-selection-count')).toHaveText('1');
+  expect(Number(await page.getByTestId('sparse-cache-pages').innerText())).toBeLessThanOrEqual(2);
+});
+
 test('random jumps keep a bounded cache and selected file, then collapse the group', async ({ page }) => {
   await page.goto('./?example=sparse');
   await expect(page.getByRole('heading', { name: 'Sparse paging' })).toBeVisible();
@@ -88,6 +147,10 @@ test('keeps failed-page placeholders inert and retries without losing a pinned s
   const placeholder = page.locator('[data-chonky-sparse-placeholder]').first();
   await expect(placeholder).toBeVisible();
   await expect(placeholder).toHaveCSS('pointer-events', 'none');
+  await expect(placeholder).toBeEmpty();
+  await expect(page.locator('.chonky-fileListWrapper')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.chonky-fileListWrapper').getByRole('progressbar')).toHaveCount(0);
+  await expect(page.locator('.chonky-fileListWrapper').getByRole('status')).toHaveCount(0);
   await expect(page.getByTestId('sparse-selection-count')).toHaveText('1');
   await expect(page.getByTestId('sparse-selected-cached')).toHaveText('false');
   await expect(page.locator(`[data-chonky-file-id="${selectedId}"]`)).toBeVisible();

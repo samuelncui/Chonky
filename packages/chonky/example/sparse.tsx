@@ -45,6 +45,7 @@ const SparseBrowser = ({ query, descending }: { query: string; descending: boole
   const [pages, setPages] = useState<Map<number, SparseFileRow[]>>(new Map());
   const [selected, setSelected] = useState<FileData[]>([]);
   const [rangeStart, setRangeStart] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [failedPages, setFailedPages] = useState<Set<number>>(new Set());
   const [result, setResult] = useState(
     'Scroll to load a page. Select a file, scroll away, then reveal it from its pinned row.',
@@ -73,6 +74,7 @@ const SparseBrowser = ({ query, descending }: { query: string; descending: boole
         if (pages.has(page) || pending.current.has(page) || failedPages.has(page)) continue;
         const timer = setTimeout(() => {
           pending.current.delete(page);
+          setLoading(pending.current.size > 0);
           setPages((current) => {
             const next = new Map(current);
             next.set(
@@ -87,6 +89,7 @@ const SparseBrowser = ({ query, descending }: { query: string; descending: boole
         }, 250);
         pending.current.set(page, timer);
       }
+      setLoading(pending.current.size > 0);
     },
     [collapsed, failedPages, members.length, pages, rowAt],
   );
@@ -134,6 +137,7 @@ const SparseBrowser = ({ query, descending }: { query: string; descending: boole
     const timer = pending.current.get(page);
     if (timer) clearTimeout(timer);
     pending.current.delete(page);
+    setLoading(pending.current.size > 0);
     setFailedPages((current) => new Set([...current, page]));
     setPages((current) => {
       const next = new Map(current);
@@ -202,6 +206,7 @@ const SparseBrowser = ({ query, descending }: { query: string; descending: boole
         >
           <FileToolbar />
           <FileList
+            loading={!collapsed && loading ? 'more' : undefined}
             emptyPlaceholder={
               <div className="demo-empty">
                 <strong>No matching files.</strong>
