@@ -123,6 +123,27 @@ describe('presentation extensions', () => {
     await waitFor(() => expect(browserRef.current?.getFileSelection()).toEqual(new Set()));
   });
 
+  it('translates the navbar and loading labels through i18n messages', () => {
+    render(
+      <FileBrowser
+        files={[]}
+        disableDragAndDrop
+        i18n={{
+          messages: {
+            'chonky.navbar.copyPath': 'Copiar ruta',
+            'chonky.fileList.loadingFiles': 'Cargando archivos',
+          },
+        }}
+      >
+        <FileNavbar />
+        <FileList loading="initial" />
+      </FileBrowser>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copiar ruta' })).not.toBeNull();
+    expect(screen.getByRole('progressbar', { name: 'Cargando archivos' })).not.toBeNull();
+  });
+
   it('shows the empty placeholder only after initial loading completes', () => {
     const { rerender } = render(
       <FileBrowser files={[]} disableDragAndDrop>

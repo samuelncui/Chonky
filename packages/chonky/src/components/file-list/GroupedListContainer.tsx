@@ -1,4 +1,5 @@
 import React, { UIEvent, useEffect, useMemo, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { reduxActions } from '../../redux/reducers';
@@ -14,7 +15,7 @@ import { useChonkyDispatch, useChonkySelector, useParamSelector } from '../../re
 import { FileViewMode } from '../../types/file-view.types';
 import { FileListGroup, SparseFileGroup } from '../../types/grouping.types';
 import { useFileActionProps, useFileActionTrigger } from '../../util/file-actions';
-import { useLocalizedFileActionStrings } from '../../util/i18n';
+import { getI18nId, I18nNamespace, useLocalizedFileActionStrings } from '../../util/i18n';
 import { makeLocalChonkyStyles } from '../../util/styles';
 import { ToolbarButton } from '../external/ToolbarButton';
 import { SmartFileEntry } from './FileEntry';
@@ -54,6 +55,7 @@ export const GroupHeader = ({
 }) => {
   const classes = useStyles();
   const dispatch = useChonkyDispatch();
+  const intl = useIntl();
   const activeId = useChonkySelector(selectActiveGroupId);
   const grouping = useChonkySelector(selectGrouping);
   return (
@@ -78,16 +80,32 @@ export const GroupHeader = ({
           {group.description && <span>{group.description}</span>}
         </span>
         <span className={classes.count}>
-          {'memberCount' in group
-            ? group.memberCount
-            : group.fileIds.length === group.totalCount
-              ? group.totalCount
-              : `${group.fileIds.length} / ${group.totalCount}`}{' '}
-          {('memberCount' in group ? group.memberCount : group.totalCount) === 1 ? 'file' : 'files'}
+          {intl.formatMessage(
+            {
+              id: getI18nId(I18nNamespace.FileList, 'groupFileCount'),
+              defaultMessage: '{label} {count, plural, one {file} other {files}}',
+            },
+            {
+              label:
+                'memberCount' in group
+                  ? group.memberCount
+                  : group.fileIds.length === group.totalCount
+                    ? group.totalCount
+                    : `${group.fileIds.length} / ${group.totalCount}`,
+              count: 'memberCount' in group ? group.memberCount : group.totalCount,
+            },
+          )}
         </span>
         {group.badge && <span className={classes.count}>{group.badge}</span>}
       </button>
-      <div className={classes.actions} role="group" aria-label={`${group.name} actions`}>
+      <div
+        className={classes.actions}
+        role="group"
+        aria-label={intl.formatMessage(
+          { id: getI18nId(I18nNamespace.FileList, 'groupActions'), defaultMessage: '{name} actions' },
+          { name: group.name },
+        )}
+      >
         {(group.actionIds ?? grouping?.actionIds ?? []).map((actionId) => (
           <GroupAction key={actionId} actionId={actionId} groupId={group.id} />
         ))}

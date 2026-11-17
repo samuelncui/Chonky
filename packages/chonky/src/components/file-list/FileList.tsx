@@ -1,5 +1,6 @@
 import React, { UIEvent, useCallback, useContext, useMemo } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useIntl } from 'react-intl';
 import { useChonkySelector } from '../../redux/store';
 
 import { ChonkyActions } from '../../action-definitions/index';
@@ -14,6 +15,7 @@ import { FileViewMode } from '../../types/file-view.types';
 import { ChonkyIconName } from '../../types/icons.types';
 import { useFileDrop } from '../../util/dnd';
 import { ChonkyIconContext } from '../../util/icon-helper';
+import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { c, getStripeGradient, makeGlobalChonkyStyles, makeLocalChonkyStyles } from '../../util/styles';
 import { FileListEmpty } from './FileListEmpty';
 import { GridContainer } from './GridContainer';
@@ -53,7 +55,11 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
 
   const localClasses = useLocalStyles(styleState);
   const classes = useStyles(viewConfig);
-  const { onScroll, emptyPlaceholder, loading, loadingLabel = 'Loading files' } = props;
+  const { onScroll, emptyPlaceholder, loading, loadingLabel } = props;
+  const intl = useIntl();
+  const loadingLabelString =
+    loadingLabel ??
+    intl.formatMessage({ id: getI18nId(I18nNamespace.FileList, 'loadingFiles'), defaultMessage: 'Loading files' });
 
   const list = useMemo(() => {
     if (loading === 'initial') return null;
@@ -97,7 +103,7 @@ export const FileList: React.FC<FileListProps> = React.memo((props: FileListProp
       {list}
       {loading && (
         <div className={loading === 'initial' ? classes.initialLoading : classes.refreshLoading}>
-          <CircularProgress size={loading === 'initial' ? 24 : 16} aria-label={loadingLabel} />
+          <CircularProgress size={loading === 'initial' ? 24 : 16} aria-label={loadingLabelString} />
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import { FileHelper } from './file-helper';
 
 export enum I18nNamespace {
   Toolbar = 'toolbar',
+  Navbar = 'navbar',
   FileList = 'fileList',
   FileEntry = 'fileEntry',
   FileContextMenu = 'contextMenu',

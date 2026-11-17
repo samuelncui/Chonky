@@ -44,6 +44,17 @@ or pass a number (including zero) for the authoritative total. Selection and hid
 counts remain available. Sparse grouping keeps its own total row count regardless of
 this prop. Counts are data props; localization messages remain static templates.
 
+Besides the action and toolbar messages, these `i18n.messages` ids translate the
+remaining built-in text (English defaults in parentheses):
+`chonky.navbar.copyPath` (Copy path), `chonky.navbar.pathCopied` (Path copied),
+`chonky.navbar.copyPathFailed` (Could not copy path), `chonky.navbar.showParentFolders`
+(Show parent folders), `chonky.navbar.loadingAncestor` (Loading…),
+`chonky.navbar.loadingFolder` (Loading...), `chonky.fileList.loadingFiles` (Loading files;
+the `FileList` `loadingLabel` prop overrides it), `chonky.fileList.groupActions`
+(`{name} actions`), `chonky.fileList.groupFileCount`
+(`{label} {count, plural, one {file} other {files}}`) and
+`chonky.fileList.missingIconComponent` (the missing-icon warning).
+
 Sort by name starts ascending; Sort by size and Sort by date start descending.
 Selecting the active sort action toggles its direction. Custom sort actions start
 ascending unless they set `initialSortOrder: SortOrder.DESC`.

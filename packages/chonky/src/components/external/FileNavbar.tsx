@@ -9,15 +9,25 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import React, { ReactElement, useLayoutEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { ChonkyIconName } from '../../types/icons.types';
 
 import { ChonkyActions } from '../../action-definitions/index';
+import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { important, makeGlobalChonkyStyles } from '../../util/styles';
 import { useFolderChainItems } from './FileNavbar-hooks';
 import { FolderChainButton } from './FolderChainButton';
 import { SmartToolbarButton, ToolbarButton } from './ToolbarButton';
 
 const separatorWidth = 6;
+
+const navbarMessages = {
+  copyPath: 'Copy path',
+  pathCopied: 'Path copied',
+  copyPathFailed: 'Could not copy path',
+  showParentFolders: 'Show parent folders',
+  loadingAncestor: 'Loading…',
+};
 
 export interface FileNavbarProps {
   /** Replace the root breadcrumb with an application-owned scope selector. */
@@ -28,6 +38,7 @@ export interface FileNavbarProps {
 
 export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, path }) => {
   const classes = useStyles();
+  const intl = useIntl();
   const folderChainItems = useFolderChainItems();
   const [ancestorAnchor, setAncestorAnchor] = useState<HTMLButtonElement | null>(null);
   const chainKey = folderChainItems.map((item) => `${item.file?.id}:${item.file?.name}`).join('/');
@@ -35,7 +46,7 @@ export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, 
   const items = useRef(new Map<number, HTMLSpanElement>());
   const widths = useRef(new Map<number, number>());
   const [fold, setFold] = useState({ key: '', count: 0 });
-  const [copyLabel, setCopyLabel] = useState('Copy path');
+  const [copyLabel, setCopyLabel] = useState<'copyPath' | 'pathCopied' | 'copyPathFailed'>('copyPath');
   const hiddenCount = fold.key === chainKey ? fold.count : 0;
   const collapsedAncestors = folderChainItems.slice(1, hiddenCount + 1);
 
@@ -65,12 +76,15 @@ export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, 
     return () => observer.disconnect();
   }, [chainKey, folderChainItems.length]);
 
+  const navbarMessage = (id: keyof typeof navbarMessages) =>
+    intl.formatMessage({ id: getI18nId(I18nNamespace.Navbar, id), defaultMessage: navbarMessages[id] });
+
   const copyPath = async () => {
     try {
       await navigator.clipboard.writeText(path ?? folderChainItems.map((item) => item.file?.name ?? '').join('/'));
-      setCopyLabel('Path copied');
+      setCopyLabel('pathCopied');
     } catch {
-      setCopyLabel('Could not copy path');
+      setCopyLabel('copyPathFailed');
     }
   };
 
@@ -84,7 +98,7 @@ export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, 
             <ToolbarButton
               key="ancestors"
               text="…"
-              tooltip="Show parent folders"
+              tooltip={navbarMessage('showParentFolders')}
               onClick={(event) => setAncestorAnchor(event.currentTarget)}
             />,
           );
@@ -129,10 +143,10 @@ export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, 
           {folderChainComponents}
         </Breadcrumbs>
         <ToolbarButton
-          text="Copy path"
+          text={navbarMessage('copyPath')}
           icon={ChonkyIconName.copy}
           iconOnly
-          tooltip={copyLabel}
+          tooltip={navbarMessage(copyLabel)}
           onClick={() => void copyPath()}
         />
         <Menu anchorEl={ancestorAnchor} open={!!ancestorAnchor} onClose={() => setAncestorAnchor(null)}>
@@ -145,7 +159,7 @@ export const FileNavbar: React.FC<FileNavbarProps> = React.memo(({ rootContent, 
                 item.onClick?.();
               }}
             >
-              {item.file?.name ?? 'Loading…'}
+              {item.file?.name ?? navbarMessage('loadingAncestor')}
             </MenuItem>
           ))}
         </Menu>

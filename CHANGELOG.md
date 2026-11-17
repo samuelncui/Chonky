@@ -2,6 +2,12 @@
 
 Notable changes to the `@samuelncui/chonky` packages are documented here.
 
+## 0.3.11 - 2026-11-18
+
+- Translate the remaining built-in text through `i18n.messages`: the navbar copy-path
+  labels and parent-folder tooltip, loading labels, group header file counts and action
+  group label, and the missing-icon warning. English output is unchanged.
+
 ## 0.3.5 - 2026-10-02
 
 - Start size and date sorting in descending order; switching to a different sort

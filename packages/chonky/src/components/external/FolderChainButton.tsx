@@ -5,11 +5,13 @@
  */
 
 import React, { useContext, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 
 import { DndEntryState } from '../../types/file-list.types';
 import { ChonkyIconName } from '../../types/icons.types';
 import { useDndHoverOpen, useFileDrop } from '../../util/dnd';
 import { ChonkyIconContext } from '../../util/icon-helper';
+import { getI18nId, I18nNamespace } from '../../util/i18n';
 import { composeStyles, important, makeLocalChonkyStyles } from '../../util/styles';
 import { useDndIcon } from '../file-list/FileEntry-hooks';
 import { FolderChainItem } from './FileNavbar-hooks';
@@ -23,6 +25,7 @@ export interface FolderChainButtonProps {
 
 export const FolderChainButton: React.FC<FolderChainButtonProps> = React.memo(({ first, current, item }) => {
   const { file, disabled, onClick } = item;
+  const intl = useIntl();
   const { dndIsOver, dndCanDrop, drop } = useFileDrop({
     file,
     forceDisableDrop: !file || current,
@@ -45,7 +48,9 @@ export const FolderChainButton: React.FC<FolderChainButtonProps> = React.memo(({
     [classes.disabledBreadcrumb]: disabled,
     [classes.currentBreadcrumb]: current,
   });
-  const text = file ? file.name : 'Loading...';
+  const text = file
+    ? file.name
+    : intl.formatMessage({ id: getI18nId(I18nNamespace.Navbar, 'loadingFolder'), defaultMessage: 'Loading...' });
   const icon = first && file?.folderChainIcon === undefined ? ChonkyIconName.folder : file?.folderChainIcon;
 
   return (
